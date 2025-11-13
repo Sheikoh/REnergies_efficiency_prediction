@@ -332,7 +332,7 @@ with tab_co2:
 with tab_ech:
     st.subheader("Échanges physiques")
 
-    # Colonne commune "Ech. physiques" (présente dans tes 2 EDA)
+    # Colonne commune "Ech. physiques"
     if "Ech. physiques" not in df_current.columns:
         st.info("La colonne 'Ech. physiques' n'est pas disponible dans ce dataset.")
     else:
