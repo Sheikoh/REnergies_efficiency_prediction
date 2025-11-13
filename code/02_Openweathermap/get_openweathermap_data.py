@@ -27,7 +27,7 @@ def get_city_data(cities):
     logging.info("GET_CITY_DATA")
 
     nominatim_base_url = "https://nominatim.openstreetmap.org/"
-    search_city_url2 = "search?format=json&limit=1"
+    search_city_url2 = "search"
 
     nominatim_cities_data = []
     
@@ -126,12 +126,12 @@ def get_openweathermap(cities_coord, start_date, nb_days=1, file_basename="openw
         json.dump(cities_coord, f, ensure_ascii=False, indent=4)
     
 
-start_time = datetime(2025, 11, 12, 12, 0, 0)
+start_time = datetime(2023, 6, 27, 12, 0, 0)
 
 # Beware You have only 1000 free requests on Openweathermap
 # Adjust the nb of days with this limit
 # nb_days x len(cities) < 1000 requests
-nb_days = 3
+nb_days = 100
 cities = [
     'Moulins',
     'Aurillac',
