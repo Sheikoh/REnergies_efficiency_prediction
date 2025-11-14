@@ -1,5 +1,6 @@
 import pandas as pd
-from solar_data_func import daterange, extract_date
+from func_utils.utils import daterange, save_tocsv
+from solar_data_func import extract_date
 from datetime import date
 
 ###Base variables
@@ -15,4 +16,5 @@ for single_date in daterange(start_date, end_date):
     solar_data = pd.concat([solar_data, df_temp])
 
 #storage of the data in a csv
-solar_data.to_csv('data/solar/raw_solar_data.csv')
+save_tocsv(solar_data, 'data/solar/raw_solar_data.csv')
+# solar_data.to_csv('data/solar/raw_solar_data.csv')

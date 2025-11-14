@@ -2,18 +2,19 @@
 import requests
 import pandas as pd
 from datetime import date, timedelta
+from func_utils.utils import mean, daterange
 
 ### General functions
 
-##calculate mean from a list
-def mean(liste):
-    return sum(liste)/len(liste)
+# ##calculate mean from a list
+# def mean(liste):
+#     return sum(liste)/len(liste)
 
-##Create a range from a start and a end date
-def daterange(start_date: date, end_date: date):
-    days = int((end_date - start_date).days)
-    for n in range(days):
-        yield start_date + timedelta(n)
+# ##Create a range from a start and a end date
+# def daterange(start_date: date, end_date: date):
+#     days = int((end_date - start_date).days)
+#     for n in range(days):
+#         yield start_date + timedelta(n)
 
 ###Requesting the data
 
