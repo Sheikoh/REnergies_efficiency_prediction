@@ -9,12 +9,11 @@ from dotenv import load_dotenv
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 headers = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3 ',
-    "Accept-Language": "fr-FR,fr;q=0.9"
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
 }
 
 
-def get_city_data(cities):
+def get_city_data(cities, filename="./cities.json"):
     """
     Get the GPS coordinates of a list of cities
 
@@ -27,10 +26,17 @@ def get_city_data(cities):
     logging.info("GET_CITY_DATA")
 
     nominatim_base_url = "https://nominatim.openstreetmap.org/"
-    search_city_url2 = "search?format=json&limit=1"
+    search_city_url2 = "search"
 
     nominatim_cities_data = []
     
+    if os.path.exists(filename):
+        logging.info(f"Use of {filename}")
+        with open(filename, "r", encoding="utf-8") as f:
+            data = json.load(f)
+
+        return data
+
     for city in cities:
         
         params = {
@@ -48,7 +54,22 @@ def get_city_data(cities):
         except ValueError:
             logging.error(f"Error decoding JSON for {city}")
 
-    return { city[0]["name"]: {"lat": city[0]["lat"], "lon": city[0]["lon"]} for city in nominatim_cities_data }
+    res = { city[0]["name"]: {"lat": city[0]["lat"], "lon": city[0]["lon"]} for city in nominatim_cities_data }
+
+    try:
+        if len(res) == 0:
+            logging.info(f"No data to write to : {filename}")
+            return {}
+
+        logging.info(f"write data to : {filename}")
+
+        with open(filename, "w", encoding="utf-8") as f:
+            json.dump(res, f, ensure_ascii=False, indent=4)
+
+    except IOError as e:
+        logging.error(f"Error writing to target file {filename}: {e}")
+
+    return res
 
 
 def get_openweathermap(cities_coord, start_date, nb_days=1, file_basename="openweathermap"):
@@ -59,11 +80,11 @@ def get_openweathermap(cities_coord, start_date, nb_days=1, file_basename="openw
     ----------
     cities_coord : list
         A list of cities with gps coordinates
-    start_date: datetime
+    start_date : datetime
         First date to request
-    nb_days: int
+    nb_days : int
         Number of days to request until the start_date
-    file_basename: str
+    file_basename : str
         Base name of the file
     """
 
@@ -120,18 +141,22 @@ def get_openweathermap(cities_coord, start_date, nb_days=1, file_basename="openw
     end_date_str = current_date.date().isoformat()
     filename = f"{file_basename}_{end_date_str}_{start_date_str}.json"
     
-    logging.info(f"write data to : {filename}")
+    try:
+        logging.info(f"write data to : {filename}")
 
-    with open(filename, "w", encoding="utf-8") as f:
-        json.dump(cities_coord, f, ensure_ascii=False, indent=4)
+        with open(filename, "w", encoding="utf-8") as f:
+            json.dump(cities_coord, f, ensure_ascii=False, indent=4)
+
+    except IOError as e:
+        logging.error(f"Error writing to target file {filename}: {e}")
     
 
-start_time = datetime(2025, 11, 12, 12, 0, 0)
+start_time = datetime(2023, 6, 27, 12, 0, 0)
 
 # Beware You have only 1000 free requests on Openweathermap
 # Adjust the nb of days with this limit
 # nb_days x len(cities) < 1000 requests
-nb_days = 3
+nb_days = 100
 cities = [
     'Moulins',
     'Aurillac',
@@ -142,5 +167,6 @@ cities = [
 
 
 cities_coord = get_city_data(cities)
+print(cities_coord)
 
 get_openweathermap(cities_coord, start_time, nb_days)
