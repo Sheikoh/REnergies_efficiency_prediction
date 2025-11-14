@@ -9,7 +9,7 @@ from datetime import date, timedelta
 def mean(liste):
     return sum(liste)/len(liste)
 
-
+##Create a range from a start and a end date
 def daterange(start_date: date, end_date: date):
     days = int((end_date - start_date).days)
     for n in range(days):
@@ -42,7 +42,9 @@ def split_response(text):
     return text_A, text_B, text_C, text_D, text_E, text_F
 
 ### data collection for the different paragraphs
-#Traitement de la section A
+#Treatment of section A : event occurences
+# At the moment, only the number of events is saved, 
+# but the pipeline is ready for more complex treatment
 def coll_data_A(text_A, daily):
     #hard codding the data limits for later separation.
     indices = [1, 6, 11, 17, 22, 29, 35, 38, 45, 49, 68]
