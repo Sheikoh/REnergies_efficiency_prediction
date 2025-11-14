@@ -95,14 +95,14 @@ async def index():
     message = "Hello world! This `/` is the most simple and default endpoint. If you want to learn more, check out documentation of the api at `/docs`"
     return message
 
-@app.get("/preview", tags=["Introduction Endpoints"])
-async def preview(nrow: int = 5):
-    """
-    Say hi to anybody who's specifying their name as query parameter. 
-    """
+# @app.get("/preview", tags=["Introduction Endpoints"])
+# async def preview(nrow: int = 5):
+#     """
+#     Say hi to anybody who's specifying their name as query parameter. 
+#     """
     
     
-    return data.head(nrow).to_json()
+#     return data.head(nrow).to_json()
 
 # @app.post("/predict", tags=["Introduction Endpoints"])
 # async def predict(row: dict[str, Union[str, float]]):
