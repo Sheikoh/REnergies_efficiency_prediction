@@ -1,9 +1,10 @@
 fastapi[standard]
+mlflow==2.21.3
 pydantic 
 typing 
 pandas 
 openpyxl 
-mlflow 
+
 boto3 
 scikit-learn
 python-multipart
