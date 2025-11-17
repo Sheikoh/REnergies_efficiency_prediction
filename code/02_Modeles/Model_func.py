@@ -1,5 +1,5 @@
 import pandas as pd
-from func_utils.utils import save_tocsv
+#from func_utils.utils import save_tocsv
 
 import plotly.express as px
 import seaborn as sns
@@ -38,24 +38,49 @@ def data_coll_landsat(url ='../../data/LandSat/result_EarthExplorer_region_ARA.c
     data_sat['Time']=data_sat['Time'].dt.round('30min') #to match the production data)
     return data_sat
 
-def data_merge(data_prod, data_sat):
-    """
-    Function designed to merge the different datasets. 
-    At the moment: Production data, Landsat (meta)data
-    to be included: weather, solar
-    """
+def data_coll_weather(url ='../../data/openweathermap/merge_openweathermap_cleaned.csv'):
 
+    # read csv
+    df_weather = pd.read_csv(url)
+    data_weather = df_weather.copy()
+
+    # formatting the date for future data merge operations
+    data_weather['Time'] = pd.to_datetime(data_weather['dt'])
+    return data_weather
+
+def add_target_column_sat(data_sat, data_prod):
+    """
+    Function designed to add a target column (from prod_data) to the data_sat dataframe.
+    """
     # group the landsat data by the time variable to aggregate the images data
     sat_columns_to_use = ['Land Cloud Cover', 'Scene Cloud Cover L1','Sun Elevation L0RA', 'Sun Azimuth L0RA']
     data_sat_grouped = data_sat.groupby('Time')[sat_columns_to_use].mean().reset_index()
 
     # select columns from production data
-    prod_columns_to_use = ['Time', 'solaire', 'tco_solaire_(%)', 'tch_solaire_(%)']
+    prod_columns_to_use = ['Time', 'tch_solaire_(%)']
     data_prod_limited = data_prod[prod_columns_to_use]
 
-    merged_data = data_sat_grouped.merge(data_prod_limited, on='Time', how='inner')
+    targeted_sat_data = data_sat_grouped.merge(data_prod_limited, on='Time', how='inner')
     # save_tocsv(merged_data, '../../data/compiled_data/sat_only_data.csv')
-    return merged_data
+    return targeted_sat_data
+
+def add_target_column_weather(data_weather, data_prod):
+    """
+    Function designed to add a target column (from prod_data) to the data_weather dataframe.
+    """
+    # group the weather data by the time variable to aggregate the images data (5 cities in AuRA)
+    weather_columns_to_use = ['temp', 'pressure', 'humidity', 'clouds', 'city']
+    data_weather_grouped = data_weather[weather_columns_to_use]
+
+    # select columns from production data
+    prod_columns_to_use = ['Time', 'tch_solaire_(%)']
+    data_prod_limited = data_prod[prod_columns_to_use]
+
+    targeted_weather_data = data_weather_grouped.merge(data_prod_limited, on='Time', how='left')
+    return targeted_weather_data
+
+
+
 
 def preprocess(data):
     return
