@@ -7,4 +7,7 @@ sdk: docker
 pinned: false
 ---
 
-Check out the configuration reference at https://huggingface.co/docs/hub/spaces-config-reference
+git remote add mlflow https://<user>:<hugging_face_token>@huggingface.co/spaces/REnergies99/mlflow
+
+git subtree add --prefix=code/05_Mlflow mlflow main --squash
+

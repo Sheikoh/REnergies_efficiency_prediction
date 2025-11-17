@@ -1,5 +1,5 @@
 import pandas as pd
-# from func_utils.utils import save_tocsv
+from func_utils.utils import save_tocsv
 
 import plotly.express as px
 import seaborn as sns
@@ -57,8 +57,11 @@ def data_merge(data_prod, data_sat):
     # save_tocsv(merged_data, '../../data/compiled_data/sat_only_data.csv')
     return merged_data
 
+def preprocess(data):
+    return
 
-def preprocess(merged_data):
+
+def data_prep(merged_data):
     """
     Preprocessing of the data.
     Up to date: Production data and Landsat (meta)data / standard scaler
