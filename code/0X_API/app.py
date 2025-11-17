@@ -9,18 +9,19 @@ import joblib
 # data = pd.read_excel("ibm_hr_attrition.xlsx", index_col=0)
 # model = joblib.load("model_ibm")
 
-# Set your variables for your environment
-EXPERIMENT_NAME="RE_productivity"
+
 
 # Set tracking URI to your Hugging Face application
 mlflow.set_tracking_uri("https://renergies99-mlflow.hf.space/")
 
+# Set your variables for your environment
+EXPERIMENT_NAME="first_weather_models"
 # Set experiment's info 
 mlflow.set_experiment(EXPERIMENT_NAME)
 
 # Get our experiment info
 experiment = mlflow.get_experiment_by_name(EXPERIMENT_NAME)
-mlflow.sklearn.autolog()
+# mlflow.sklearn.autolog()
 
 description = """
 
@@ -168,6 +169,12 @@ async def predict(predictionFeatures: dict[str, Union[str, float]]):
     """
     Prediction of the Renewable Energies based on the input data 
     """
+
+    # Set your variables for your environment
+    EXPERIMENT_NAME="first_weather_models"
+    # Set experiment's info 
+    mlflow.set_experiment(EXPERIMENT_NAME)
+
     print(predictionFeatures)
     # Read data 
     data_employee = pd.DataFrame([predictionFeatures])
