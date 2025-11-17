@@ -82,7 +82,7 @@ def data_prep(merged_data):
 
     return x_train, x_test, y_train, y_test
 
-def model_training(model):
+def model_training(model, x_train, x_test, y_train, y_test):
 
     """
     Model training with experiment storage in mlflow server.
