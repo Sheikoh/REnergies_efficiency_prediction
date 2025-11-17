@@ -113,54 +113,54 @@ async def index():
 #     return model.predict(row).to_json()
 
 
-@app.get("/blog-articles/{blog_id}", tags=["Blog Endpoints"])
-async def read_blog_article(blog_id: int):
-    """
-    Say hi to anybody who's specifying their name as query parameter. 
+# @app.get("/blog-articles/{blog_id}", tags=["Blog Endpoints"])
+# async def read_blog_article(blog_id: int):
+#     """
+#     Say hi to anybody who's specifying their name as query parameter. 
 
-    >👋 Careful, if you change the file using `/create-blog-article` right before, the new dataframe is not right away available, you will access a previous version. 
-    """
+#     >👋 Careful, if you change the file using `/create-blog-article` right before, the new dataframe is not right away available, you will access a previous version. 
+#     """
 
-    articles = pd.read_csv("https://full-stack-assets.s3.eu-west-3.amazonaws.com/Deployment/articles.csv")
-    if blog_id > len(articles):
-        response = {
-            "msg": "We don't have that many articles!"
-        }
-    else:
-        article = pd.read_csv("https://full-stack-assets.s3.eu-west-3.amazonaws.com/Deployment/articles.csv").iloc[blog_id, :]
-        response = {
-            "title": article.title,
-            "content": article.content, 
-            "author": article.author
-        }
+#     articles = pd.read_csv("https://full-stack-assets.s3.eu-west-3.amazonaws.com/Deployment/articles.csv")
+#     if blog_id > len(articles):
+#         response = {
+#             "msg": "We don't have that many articles!"
+#         }
+#     else:
+#         article = pd.read_csv("https://full-stack-assets.s3.eu-west-3.amazonaws.com/Deployment/articles.csv").iloc[blog_id, :]
+#         response = {
+#             "title": article.title,
+#             "content": article.content, 
+#             "author": article.author
+#         }
 
-    return response
+#     return response
 
 
-@app.post("/create-blog-article", tags=["Blog Endpoints"])
-async def create_blog_article(blog_article: BlogArticles):
-    """
-    Append a new blog article into the database which is a `.csv` file. 
-    """
-    df = pd.read_csv("https://full-stack-assets.s3.eu-west-3.amazonaws.com/Deployment/articles.csv")
-    new_article = pd.Series({
-        'id': len(df)+1,
-        'title': blog_article.title,
-        'content': blog_article.content,
-        'author': blog_article.author
-    })
+# @app.post("/create-blog-article", tags=["Blog Endpoints"])
+# async def create_blog_article(blog_article: BlogArticles):
+#     """
+#     Append a new blog article into the database which is a `.csv` file. 
+#     """
+#     df = pd.read_csv("https://full-stack-assets.s3.eu-west-3.amazonaws.com/Deployment/articles.csv")
+#     new_article = pd.Series({
+#         'id': len(df)+1,
+#         'title': blog_article.title,
+#         'content': blog_article.content,
+#         'author': blog_article.author
+#     })
 
-    df = df.append(new_article, ignore_index=True)
-    df.to_csv('s3://full-stack-assets/Deployment/articles.csv')
+#     df = df.append(new_article, ignore_index=True)
+#     df.to_csv('s3://full-stack-assets/Deployment/articles.csv')
 
-    return df.to_json()
+#     return df.to_json()
 
-@app.post("/post-picture", tags=["Blog Endpoints"])
-async def post_picture(file: UploadFile= File(...)):
-    """
-    Upload a picture and read its file name.
-    """
-    return {"picture": file.filename}
+# @app.post("/post-picture", tags=["Blog Endpoints"])
+# async def post_picture(file: UploadFile= File(...)):
+#     """
+#     Upload a picture and read its file name.
+#     """
+#     return {"picture": file.filename}
 
 
 @app.post("/predict", tags=["Machine Learning"])
@@ -173,7 +173,7 @@ async def predict(predictionFeatures: dict[str, Union[str, float]]):
     data_employee = pd.DataFrame([predictionFeatures])
 
     # Log model from mlflow 
-    logged_model = 'runs:/31a5696ba338449eab0af717618abcd6'
+    logged_model = 'runs:/d81138d3368d4c048bafd9c7fefd70d5'
 
     # # Load model as a PyFuncModel.
     loaded_model = mlflow.pyfunc.load_model(logged_model)
