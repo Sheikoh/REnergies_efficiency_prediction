@@ -1,7 +1,6 @@
 #This file gives the console commands to link the repo to the hugging face space
 
-# git remote add hf_REnergy https://huggingface.co/spaces/REnergies99/API_REnergy
-git subrepo clone https://huggingface.co/spaces/REnergies99/API_REnergy code/09_API -b main
+git remote add hf_REnergy https://huggingface.co/spaces/REnergies99/API_REnergy
 
 #initiate the repo hugging_face. 
 # BEWARE: this deletes the Mandatory README.md created by Hugging face, which you will need to recreate.

@@ -11,8 +11,8 @@ st.set_page_config(
 @st.cache_data
 def load_data():
     # Datasets
-    df_nat = pd.read_csv("https://renergies99-bucket.s3.eu-west-3.amazonaws.com/public/eCO2mix_RTE_Annuel-Definitif.csv")
-    df_reg = pd.read_csv("https://renergies99-bucket.s3.eu-west-3.amazonaws.com/public/eCO2mix_RTE_Auvergne-Rhone-Alpes.csv")
+    df_nat = pd.read_csv("https://renergies99-bucket.s3.eu-west-3.amazonaws.com/public/prod/eCO2mix_RTE_Annuel-Definitif.csv")
+    df_reg = pd.read_csv("https://renergies99-bucket.s3.eu-west-3.amazonaws.com/public/prod/eCO2mix_RTE_Auvergne-Rhone-Alpes.csv")
 
     df_nat = prepare_df(df_nat, zone="France")
     df_reg = prepare_df(df_reg, zone="Auvergne-Rhône-Alpes")
