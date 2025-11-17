@@ -173,7 +173,7 @@ async def predict(predictionFeatures: dict[str, Union[str, float]]):
     data_employee = pd.DataFrame([predictionFeatures])
 
     # Log model from mlflow 
-    logged_model = 'runs:/d81138d3368d4c048bafd9c7fefd70d5'
+    logged_model = 'runs:/d81138d3368d4c048bafd9c7fefd70d5/model'
 
     # # Load model as a PyFuncModel.
     loaded_model = mlflow.pyfunc.load_model(logged_model)

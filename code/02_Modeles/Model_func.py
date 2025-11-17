@@ -58,7 +58,8 @@ def data_merge(data_prod, data_sat):
     return merged_data
 
 def preprocess(data):
-    
+    return
+
 
 def data_prep(merged_data):
     """
