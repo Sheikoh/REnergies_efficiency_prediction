@@ -166,7 +166,7 @@ async def index():
 @app.post("/predict", tags=["Machine Learning"])
 async def predict(predictionFeatures: dict[str, Union[str, float]]):
     """
-    Prediction of attrition for an employee! 
+    Prediction of the Renewable Energies based on the input data 
     """
     print(predictionFeatures)
     # Read data 
