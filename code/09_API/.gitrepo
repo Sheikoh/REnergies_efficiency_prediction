@@ -6,7 +6,7 @@
 [subrepo]
 	remote = https://huggingface.co/spaces/REnergies99/API_REnergy
 	branch = main
-	commit = bed8b86b3ce85a4e24ecb70ee1f7502bb1dd75fc
-	parent = 392b2b2c59aa8a05a5c1dc9dc8b4d9a9b2d2e8db
+	commit = ef53533ca7c5b524f1783f0086c5a8f2c51da31c
+	parent = fbefbf86efa7ceac79b6618f893d2f062af23306
 	method = merge
 	cmdver = 0.4.9
