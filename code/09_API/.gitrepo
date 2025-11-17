@@ -1,0 +1,12 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/ingydotnet/git-subrepo#readme
+;
+[subrepo]
+	remote = https://huggingface.co/spaces/REnergies99/API_REnergy
+	branch = main
+	commit = ef53533ca7c5b524f1783f0086c5a8f2c51da31c
+	parent = fbefbf86efa7ceac79b6618f893d2f062af23306
+	method = merge
+	cmdver = 0.4.9
