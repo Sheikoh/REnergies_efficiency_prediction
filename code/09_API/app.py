@@ -5,14 +5,14 @@ from pydantic import BaseModel
 from typing import Literal, List, Union
 from fastapi import FastAPI, File, UploadFile
 import joblib
-
+import app_func as af
 import boto3
 from dotenv import load_dotenv
 import os
 # data = pd.read_excel("ibm_hr_attrition.xlsx", index_col=0)
 # model = joblib.load("model_ibm")
 
-
+bucket = af.session_boto()
 
 # Set tracking URI to your Hugging Face application
 mlflow.set_tracking_uri("https://renergies99-mlflow.hf.space/")
@@ -131,6 +131,9 @@ async def predict(predictionFeatures: dict[str, Union[str, float]]):
 
     # Format response
     response = {"prediction": prediction.tolist()[0]}
+    resp_df = pd.DataFrame(response)
+    resp_toboto = resp_df.to_csv()
+    af.to_boto(bucket, resp_toboto)
     return response
 
 @app.post("/predict_live", tags=["Machine Learning"])

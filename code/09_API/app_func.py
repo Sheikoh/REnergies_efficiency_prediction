@@ -14,8 +14,8 @@ def session_boto():
     
     load_dotenv()
 
-    API_KEY_S3 = os.environ["API_KEY_S3"]
-    API_SECRET_KEY_S3 = os.environ["API_SECRET_KEY_S3"]
+    API_KEY_S3 = os.environ["AWS_ACCESS_KEY_ID"]
+    API_SECRET_KEY_S3 = os.environ["API_SECRET_ACCESS_KEY"]
 
     bucket_name = "renergies99-bucket"
     
@@ -40,5 +40,5 @@ def to_boto(bucket, predi):
     s3_key = "predi.csv"
     bucket.put_object(
         Body = predi,
-        Key = s3_prefix
+        Key = s3_prefix+s3_key
     )
