@@ -5,6 +5,8 @@ import plotly.graph_objects as go
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+import pvlib
+
 import mlflow
 from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import StandardScaler
@@ -19,9 +21,9 @@ from dotenv import load_dotenv
 import os
 
 #----VARIABLES------
-data_weather_path = '../../data/openweathermap/merge_openweathermap_cleaned.csv'
-data_prod_path = '../../data/prod/eCO2mix_RTE_Auvergne-Rhone-Alpes_cleaned.csv'
-features = ['temp', 'pressure', 'humidity', 'clouds']
+data_weather_path = 's3://renergies99-bucket/public/openweathermap/merge_openweathermap_cleaned.csv'
+data_prod_path = 's3://renergies99-bucket/public/prod/eCO2mix_RTE_Auvergne-Rhone-Alpes_cleaned.csv'
+features = ['temp', 'pressure', 'humidity', 'clouds'] #add sunset-sunrise
 target = ['tch_solaire_(%)']
 
 

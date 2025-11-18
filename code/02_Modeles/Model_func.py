@@ -15,7 +15,7 @@ from datetime import timedelta
 
 #--------------COLLECT DATA FUNCTIONS---------------------------------------
 #---Prod
-def data_collection_prod(url='../../data/prod/eCO2mix_RTE_Auvergne-Rhone-Alpes_cleaned.csv'):
+def data_collection_prod(url='s3://renergies99-bucket/public/prod/eCO2mix_RTE_Auvergne-Rhone-Alpes_cleaned.csv'):
 
     # read csv
     df_prod = pd.read_csv(url)
@@ -52,7 +52,7 @@ def merge_solar_data(weather_data, solar_data):
     return targeted_weather_data
 
 #---LandSat
-def data_coll_landsat(url ='../../data/LandSat/result_EarthExplorer_region_ARA.csv'):
+def data_coll_landsat(url ='s3://renergies99-bucket/public/LandSat/result_EarthExplorer_region_ARA.csv'):
 
     # read csv
     df_sat = pd.read_csv(url, encoding='ISO-8859-1', sep=';')
@@ -68,7 +68,7 @@ def data_coll_landsat(url ='../../data/LandSat/result_EarthExplorer_region_ARA.c
     return data_sat
 
 #---OpenWeather
-def data_coll_weather(url ='../../data/openweathermap/merge_openweathermap_cleaned.csv'):
+def data_coll_weather(url ='s3://renergies99-bucket/public/openweathermap/merge_openweathermap_cleaned.csv'):
     # read csv
     df_weather = pd.read_csv(url)
     data_weather = df_weather.copy()
