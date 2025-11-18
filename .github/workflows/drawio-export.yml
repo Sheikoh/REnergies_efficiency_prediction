@@ -1,0 +1,27 @@
+name: Export Draw.io Diagrams
+
+on:
+  push:
+    paths:
+      - 'diagrams/architecture.drawio'
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Export .drawio to .svg
+        uses: rlespinasse/drawio-export-action@v2
+        with:
+          files: diagrams/architecture.drawio
+          format: svg
+
+      - name: Commit and push SVG
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+          git add diagrams/architecture.svg
+          git commit -m "Auto-export updated architecture diagram"
+          git push
