@@ -142,7 +142,7 @@ def add_target_column_weather(weather_data, prod_data):
     prod_columns_to_use = ['Time', 'tch_solaire_(%)']
     prod_data_limited = prod_data[prod_columns_to_use]
 
-    targeted_weather_data = weather_data.merge(prod_data_limited, on='Time', how='left')
+    targeted_weather_data = weather_data.merge(prod_data_limited, on='Time', how='inner')
     return targeted_weather_data
 
 #--------------------------------------------------------------------
