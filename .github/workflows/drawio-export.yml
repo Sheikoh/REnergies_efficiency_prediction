@@ -11,6 +11,7 @@ on:
 jobs:
   export:
     # Prevent infinite loop: skip if commit was made by GitHub Actions itself
+    if: github.actor != 'github-actions'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
@@ -29,6 +30,6 @@ jobs:
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
-          git add diagrams/architecture.svg
-          git commit -m "Auto-export updated architecture diagram"
+          git add diagrams/architecture.drawio.svg
+          git commit -m "Auto-export updated architecture diagram .svg"
           git push
