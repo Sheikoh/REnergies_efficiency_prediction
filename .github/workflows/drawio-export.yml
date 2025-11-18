@@ -23,7 +23,7 @@ jobs:
         with:
           path: diagrams/architecture.drawio   # input file
           format: svg                          # output format
-          output: diagrams/architecture.svg    # output file
+          output: diagrams/architecture.drawio.svg    # output file
 
       - name: Commit and push SVG
         run: |
