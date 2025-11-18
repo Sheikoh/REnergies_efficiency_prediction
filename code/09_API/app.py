@@ -114,6 +114,7 @@ async def predict(predictionFeatures: dict[str, Union[str, float]]):
     print(predictionFeatures)
     # Read data 
     data_employee = pd.DataFrame([predictionFeatures])
+    print('good_df')
 
     # Log model from mlflow 
     logged_model = 'runs:/d81138d3368d4c048bafd9c7fefd70d5/model'
@@ -128,10 +129,11 @@ async def predict(predictionFeatures: dict[str, Union[str, float]]):
     # loaded_model = joblib.load('model_ibm')
 
     prediction = loaded_model.predict(data_employee)
+    print(prediction)
 
     # Format response
     response = {"prediction": prediction.tolist()[0]}
-    resp_df = pd.DataFrame(response)
+    resp_df = pd.DataFrame(response, index=list(range(len(response))))
     resp_toboto = resp_df.to_csv()
     af.to_boto(bucket, resp_toboto)
     return response
