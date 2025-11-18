@@ -12,9 +12,9 @@ from dotenv import load_dotenv
 import os
 import mlflow
 
-#--------------COLLECT DATA FUNCTIONS & ADD TARGET---------------------------------------
+#--------------COLLECT DATA FUNCTIONS---------------------------------------
 #---Prod
-def data_coll_prod(url='../../data/prod/eCO2mix_RTE_Auvergne-Rhone-Alpes_cleaned.csv'):
+def data_collection_prod(url='../../data/prod/eCO2mix_RTE_Auvergne-Rhone-Alpes_cleaned.csv'):
 
     # read csv
     df_prod = pd.read_csv(url)
@@ -39,24 +39,6 @@ def data_coll_landsat(url ='../../data/LandSat/result_EarthExplorer_region_ARA.c
     data_sat['Time'] = data_sat['Time'].fillna(time2)
     data_sat['Time']=data_sat['Time'].dt.round('30min') #to match the production data)
     return data_sat
-
-def add_target_column_sat(data_sat, data_prod):
-    """
-    Function designed to add a target column (from prod_data) to the data_sat dataframe.
-    Returns a dataset with selected columns (not all columns)
-    Warning : the sat_data are grouped by 'Time', and the target is 'tch_solaire_(%)'
-    """
-    # group the landsat data by the time variable to aggregate the images data
-    sat_columns_to_use = ['Land Cloud Cover', 'Scene Cloud Cover L1','Sun Elevation L0RA', 'Sun Azimuth L0RA']
-    data_sat_grouped = data_sat.groupby('Time')[sat_columns_to_use].mean().reset_index()
-
-    # select columns from production data
-    prod_columns_to_use = ['Time', 'tch_solaire_(%)']
-    data_prod_limited = data_prod[prod_columns_to_use]
-
-    targeted_sat_data = data_sat_grouped.merge(data_prod_limited, on='Time', how='inner')
-    # save_tocsv(merged_data, '../../data/compiled_data/sat_only_data.csv')
-    return targeted_sat_data
 
 #---OpenWeather
 def data_coll_weather(url ='../../data/openweathermap/merge_openweathermap_cleaned.csv'):
@@ -131,21 +113,52 @@ def merge_weather_dfs_by_city(dict_dfs_cities):
     merged_df = merged_df.sort_values('Time').reset_index(drop=True)
     return merged_df
 
+def data_collection_weather(data_path):
+    weather_data = data_coll_weather(data_path)
+    dfs_by_city = split_data_weather_by_city(weather_data)
+    collected_data = merge_weather_dfs_by_city(dfs_by_city)
+    return collected_data
 
-def add_target_column_weather(weather_data, prod_data):
+#--------------ADD TARGET---------------------------------------
+def add_target(df_data, df_target, target_columns_to_use=['Time', 'tch_solaire_(%)']):
     """
-    Function designed to add a target column (from prod_data) to the data_weather dataframe.
-    the data_weather dataframe is a merge from dataframes by cities 
-        (see also split_data_weather_by_city() and  merge_weather_dfs_by_city())
+    Function designed to add a target column (from df_target) to the df_data dataframe.
+    Returns a dataframe with merged dataframes (inner joint)
     """
-    # select columns from production data
-    prod_columns_to_use = ['Time', 'tch_solaire_(%)']
-    prod_data_limited = prod_data[prod_columns_to_use]
+    # select columns from df_target
+    df_target_limited = df_target[target_columns_to_use]
 
-    targeted_weather_data = weather_data.merge(prod_data_limited, on='Time', how='inner')
-    return targeted_weather_data
+    targeted_data = df_data.merge(df_target_limited, on='Time', how='inner')
+    return targeted_data
 
+
+def add_target_column_sat(data_sat, data_prod):
+    """
+    Function designed to add a target column (from prod_data) to the data_sat dataframe.
+    Returns a dataset with selected columns (not all columns)
+    Warning : the sat_data are grouped by 'Time', and the target is 'tch_solaire_(%)'
+    """
+    # group the landsat data by the time variable to aggregate the images data
+    sat_columns_to_use = ['Land Cloud Cover', 'Scene Cloud Cover L1','Sun Elevation L0RA', 'Sun Azimuth L0RA']
+    data_sat_grouped = data_sat.groupby('Time')[sat_columns_to_use].mean().reset_index()
+
+    targeted_sat_data = add_target(data_sat_grouped, data_prod)
+    return targeted_sat_data
 #--------------------------------------------------------------------
+def clean_data(df):
+    df_clean = df.dropna()
+    return df_clean
+
+
+def data_prep_for_ML(df, features):
+    cols_to_keep = [col for col in df.columns if col.endswith(tuple(features))]
+    if not cols_to_keep:
+        raise ValueError(f"No column found ending with {features}")
+    temp_df = df[cols_to_keep]
+    prep_data = clean_data(temp_df)
+
+    return prep_data
+
 
 def preprocess(data):
     return
