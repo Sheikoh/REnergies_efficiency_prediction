@@ -6,6 +6,9 @@ from typing import Literal, List, Union
 from fastapi import FastAPI, File, UploadFile
 import joblib
 
+import boto3
+from dotenv import load_dotenv
+import os
 # data = pd.read_excel("ibm_hr_attrition.xlsx", index_col=0)
 # model = joblib.load("model_ibm")
 
@@ -130,7 +133,7 @@ async def predict(predictionFeatures: dict[str, Union[str, float]]):
     response = {"prediction": prediction.tolist()[0]}
     return response
 
-@app.post("/predict_batch", tags=["Machine Learning"])
+@app.post("/predict_live", tags=["Machine Learning"])
 async def predict(file: UploadFile= File(...)):
     """
     Prediction of attrition for an employee! 
