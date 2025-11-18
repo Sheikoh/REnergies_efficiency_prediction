@@ -12,6 +12,7 @@ from dotenv import load_dotenv
 import os
 import mlflow
 from datetime import timedelta
+import pvlib 
 
 #--------------COLLECT DATA FUNCTIONS---------------------------------------
 #---Prod
@@ -43,8 +44,8 @@ def merge_solar_data(weather_data, solar_data):
         (see also split_data_weather_by_city() and  merge_weather_dfs_by_city())
     """
     # select columns from solar data
-    prod_columns_to_use = solar_data.columns
-    solar_data_limited = solar_data[prod_columns_to_use]
+    solar_columns_to_use = solar_data.columns
+    solar_data_limited = solar_data[solar_columns_to_use]
     weather_data["Date"] = weather_data["Time"].apply(lambda a_time: a_time.date().strftime("%Y-%m-%d"))
     
     targeted_weather_data = weather_data.merge(solar_data_limited, on='Date', how='inner')
@@ -76,6 +77,14 @@ def data_coll_weather(url ='s3://renergies99-bucket/public/openweathermap/merge_
     # formatting the date for future data merge operations
     data_weather['Time'] = pd.to_datetime(data_weather['dt'])
     return data_weather
+
+def get_solarposition(time, latitude, longitude):
+    """
+    Get the solar position depending on time, latitude and longitude
+    Returns a dataframe with apparent_zenith, zenith, apparent_elevation, 
+            elevation, azimuth, equation_of_time
+    """
+    return pvlib.solarposition.get_solarposition(time, latitude, longitude)
 
 def split_data_weather_by_city(data_weather, Cities='city'):
     """
@@ -116,6 +125,17 @@ def concat_data_weather_by_city(dict_dfs_cities):
     final_df = final_df.drop(columns=time_cols)
     return final_df
 
+def merge_solar_position(weather_data, data_solar_position):
+    """
+    Function designed to merge the data_solar_position to the data_weather dataframe.
+    """
+    solar_position_columns_to_use = data_solar_position.columns
+    solar_position_data_limited = data_solar_position[solar_position_columns_to_use]
+    
+    targeted_weather_data = weather_data.merge(solar_position_data_limited, left_on='Time', right_on="dt", how='inner')
+
+    return targeted_weather_data
+
 def merge_weather_dfs_by_city(dict_dfs_cities):
     """
     Merge (inner joint) columns of the 5 dataframes in the dict_dfs_cities
@@ -128,6 +148,9 @@ def merge_weather_dfs_by_city(dict_dfs_cities):
     for city, df in dict_dfs_cities.items():
         if 'Time' not in df.columns:
             raise ValueError(f"The DataFrame for '{city}' does not contain a 'Time' column.")
+
+        data_solar_position = get_solarposition(df["dt"], df["lat"], df["lon"])
+        df = merge_solar_position(df, data_solar_position)
 
         df_prefixed = df.rename(columns={col: f"{city}_{col}" for col in df.columns if col != 'Time'})
 
