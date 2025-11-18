@@ -17,7 +17,7 @@ def session_boto():
     load_dotenv()
 
     API_KEY_S3 = os.environ["AWS_ACCESS_KEY_ID"]
-    API_SECRET_KEY_S3 = os.environ["API_SECRET_ACCESS_KEY"]
+    API_SECRET_KEY_S3 = os.environ["AWS_SECRET_ACCESS_KEY"]
 
     bucket_name = "renergies99-bucket"
     
@@ -34,7 +34,6 @@ def session_boto():
 
     s3 = session.resource("s3")
     bucket = s3.Bucket(bucket_name)
-    bucket.upload_file()
     return bucket
 
 def to_boto(bucket, predi):
