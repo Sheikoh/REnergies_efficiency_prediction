@@ -10,7 +10,9 @@ from dotenv import load_dotenv
 import os
 
 def session_boto():
-
+    """
+    create a boto session
+    """
     
     load_dotenv()
 
