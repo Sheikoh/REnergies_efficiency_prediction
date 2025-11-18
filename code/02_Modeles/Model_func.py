@@ -11,6 +11,7 @@ from sklearn.linear_model import LinearRegression
 from dotenv import load_dotenv
 import os
 import mlflow
+from datetime import timedelta
 
 #--------------COLLECT DATA FUNCTIONS---------------------------------------
 #---Prod
@@ -23,6 +24,32 @@ def data_collection_prod(url='../../data/prod/eCO2mix_RTE_Auvergne-Rhone-Alpes_c
     # formatting the date for future data merge operations
     data_prod['Time'] = pd.to_datetime(data_prod['date']+" "+data_prod['heures'])
     return data_prod
+
+#--Solar
+def data_coll_solar(url='https://renergies99-bucket.s3.eu-west-3.amazonaws.com/public/solar/raw_solar_data.csv'):
+     # read csv
+    df_solar = pd.read_csv(url)
+    data_solar = df_solar.copy()
+    # data_solar["date"] is the uploaded date of the data
+    data_solar['Date'] = (pd.to_datetime(data_solar["date"], format="%Y-%m-%d") - timedelta(days=1)).apply(lambda a_date: a_date.strftime("%Y-%m-%d"))
+    data_solar.drop(columns=["Unnamed: 0", "date"], inplace=True)
+    
+    return data_solar
+
+def merge_solar_data(weather_data, solar_data):
+    """
+    Function designed to merge the solar_dataframe to the data_weather dataframe.
+    the data_weather dataframe is a merge from dataframes by cities 
+        (see also split_data_weather_by_city() and  merge_weather_dfs_by_city())
+    """
+    # select columns from solar data
+    prod_columns_to_use = solar_data.columns
+    solar_data_limited = solar_data[prod_columns_to_use]
+    weather_data["Date"] = weather_data["Time"].apply(lambda a_time: a_time.date().strftime("%Y-%m-%d"))
+    
+    targeted_weather_data = weather_data.merge(solar_data_limited, on='Date', how='inner')
+
+    return targeted_weather_data
 
 #---LandSat
 def data_coll_landsat(url ='../../data/LandSat/result_EarthExplorer_region_ARA.csv'):
