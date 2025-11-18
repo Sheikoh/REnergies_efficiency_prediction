@@ -2,21 +2,28 @@ name: Export Draw.io Diagrams
 
 on:
   push:
+    # Trigger only when this specific file changes
     paths:
       - 'diagrams/architecture.drawio'
+    branches:
+      - main
 
 jobs:
   export:
+    # Prevent infinite loop: skip if commit was made by GitHub Actions itself
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # full history required
 
       - name: Export .drawio to .svg
         uses: rlespinasse/drawio-export-action@v2
         with:
-          files: diagrams/architecture.drawio
-          format: svg
+          path: diagrams/architecture.drawio   # input file
+          format: svg                          # output format
+          output: diagrams/architecture.svg    # output file
 
       - name: Commit and push SVG
         run: |
