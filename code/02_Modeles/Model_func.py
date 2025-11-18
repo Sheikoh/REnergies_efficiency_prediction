@@ -86,6 +86,17 @@ def get_solarposition(time, latitude, longitude):
     """
     return pvlib.solarposition.get_solarposition(time, latitude, longitude)
 
+def add_day_length_column(df, df_name):
+    if 'sunrise' not in df.columns:
+        raise ValueError(f"The DataFrame {df_name} does not contain a 'sunrise' column.")
+    if 'sunset' not in df.columns:
+        raise ValueError(f"The DataFrame {df_name} does not contain a 'sunset' column.")
+    df['sunrise'] = pd.to_datetime(df['sunrise'])
+    df['sunset'] = pd.to_datetime(df['sunset'])
+    day_length_temp = df['sunset'] - df['sunrise']
+    df['day_length'] = day_length_temp.dt.total_seconds() / 3600
+    return df
+
 def split_data_weather_by_city(data_weather, Cities='city'):
     """
     Split the dataframe data_weather into 5 separate dataframes (1 for each city).
@@ -151,6 +162,7 @@ def merge_weather_dfs_by_city(dict_dfs_cities):
 
         data_solar_position = get_solarposition(df["dt"], df["lat"], df["lon"])
         df = merge_solar_position(df, data_solar_position)
+        df = add_day_length_column(df, city)
 
         df_prefixed = df.rename(columns={col: f"{city}_{col}" for col in df.columns if col != 'Time'})
 

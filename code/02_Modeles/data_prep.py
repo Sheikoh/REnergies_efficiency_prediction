@@ -21,8 +21,8 @@ from dotenv import load_dotenv
 import os
 
 #----VARIABLES------
-data_weather_path = 's3://renergies99-bucket/public/openweathermap/merge_openweathermap_cleaned.csv'
-data_prod_path = 's3://renergies99-bucket/public/prod/eCO2mix_RTE_Auvergne-Rhone-Alpes_cleaned.csv'
+data_weather_path = 'https://renergies99-bucket.s3.eu-west-3.amazonaws.com/public/openweathermap/merge_openweathermap_cleaned.csv'
+data_prod_path = 'https://renergies99-bucket.s3.eu-west-3.amazonaws.com/public/prod/eCO2mix_RTE_Auvergne-Rhone-Alpes_cleaned.csv'
 features = ['temp', 'pressure', 'humidity', 'clouds'] #add sunset-sunrise
 target = ['tch_solaire_(%)']
 
