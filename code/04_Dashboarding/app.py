@@ -45,6 +45,21 @@ def prepare_df(df, zone):
 
     return df
 
+COL_TCH = "TCH Solaire (%)"  # nom exact de la variable dans df_reg
+
+def get_daily_tch_solaire_regional(df_reg: pd.DataFrame) -> pd.DataFrame:
+    """Historique quotidien de TCH Solaire (%) pour Auvergne-Rhône-Alpes."""
+    df_zone = df_reg.dropna(subset=["datetime", COL_TCH]).copy()
+
+    df_zone["Date"] = df_zone["datetime"].dt.date
+    df_daily = (
+        df_zone
+        .groupby("Date", as_index=False)[COL_TCH]
+        .mean()
+    )
+    df_daily["Date"] = pd.to_datetime(df_daily["Date"])
+    df_daily["type"] = "Historique"
+    return df_daily
 
 @st.cache_data
 def load_data():
@@ -57,11 +72,37 @@ def load_data():
 
     return df_nat_prep, df_reg_prep
 
+def load_predictions_file() -> pd.DataFrame:
+    """
+   À adapter :
+    - le chemin du fichier
+    - le nom de la colonne de prédiction si différent
+    """ 
+    # WARNING : A adapter avec le chemin vers le fichier sur le S3
+    df_pred = pd.read_csv("https://renergies99-bucket.s3.eu-west-3.amazonaws.com/public/prediction/pred_tch_solaire_rhone_alpes.csv")
+
+    df_pred["Date"] = pd.to_datetime(df_pred["Date"], errors="coerce")
+
+    # Harmonisation du nom de la colonne de prédiction
+    if COL_TCH in df_pred.columns:
+        pass
+    elif "TCH_solaire_pred" in df_pred.columns:
+        df_pred = df_pred.rename(columns={"TCH_solaire_pred": COL_TCH})
+    else:
+        st.error(
+            f"Le fichier de prédiction doit contenir une colonne '{COL_TCH}' "
+            "ou 'TCH_solaire_pred'."
+        )
+        return pd.DataFrame()
+
+    df_pred["type"] = "Prédiction"
+    return df_pred[["Date", COL_TCH, "type"]]
+
 
 # Principes de navigation
 st.sidebar.title("Navigation")
 mode = st.sidebar.radio(
-    "Choix type de dashboard :",
+    "Choix du type de dashboard :",
     ["Descriptif", "Prédiction"],
     index=0
 )
@@ -113,7 +154,7 @@ if mode == "Descriptif":
     else:
         st.caption(f"Vue détaillée : **{vue}**")
 
-    # ----- Onglets principaux -----
+    # Onglets principaux
     tab_cons, tab_mix, tab_co2, tab_ech = st.tabs(
         [" Consommation", "Mix énergétique", "CO₂", "Échanges"]
     )
@@ -383,10 +424,68 @@ if mode == "Descriptif":
 
 # MODE 2 : PRÉDICTION
 elif mode == "Prédiction":
-    st.title("eCO2mix – Module de prédiction")
+    st.title("Taux de chage solaire en (%)")
 
-    st.markdown("""
-    Ce module héberge les modèles de prévision.
-    """)
+    # Vérifier que la colonne existe bien dans df_reg
+    if COL_TCH not in df_reg.columns:
+        st.error(f"La colonne '{COL_TCH}' n'existe pas dans le dataset régional.")
+    else:
+        # 1) HISTORIQUE : 7 derniers jours
+        df_hist_all = get_daily_tch_solaire_regional(df_reg).sort_values("Date")
 
-    st.info("A développer")
+        if df_hist_all.empty:
+            st.error("Impossible de calculer l'historique quotidien sur df_reg.")
+        else:
+            # 7 derniers jours (au sens des 7 dernières dates disponibles)
+            df_hist_7 = df_hist_all.tail(7)
+
+            # 2) PREDICTIONS : 7 prochains jours
+            df_pred_all = load_predictions_file()
+
+            if df_pred_all.empty:
+                df_pred_7 = pd.DataFrame()
+                st.info("Aucune prédiction valide chargée (vérifier le fichier).")
+            else:
+                df_pred_all = df_pred_all.sort_values("Date")
+                # 7 premiers jours de prédiction
+                df_pred_7 = df_pred_all.head(7)
+
+            # 3) DATAFRAME
+            if not df_pred_7.empty:
+                df_plot = pd.concat([df_hist_7, df_pred_7], ignore_index=True)
+            else:
+                df_plot = df_hist_7.copy()
+
+            # 4) GRAPHIQUE
+            fig = px.line(
+                df_plot,
+                x="Date",
+                y=COL_TCH,
+                color="type",
+                title="Prédiction taux de charge solaire en (%) – Auvergne-Rhône-Alpes",
+                labels={
+                    "Date": "Date",
+                    COL_TCH: "TCH Solaire (%)",
+                    "type": "Série"
+                }
+            )
+
+            st.plotly_chart(fig, use_container_width=True)
+
+            # Récap
+            col1, col2 = st.columns(2)
+            with col1:
+                st.write("**Historique (7 jours)**")
+                st.write(
+                    f"du {df_hist_7['Date'].min().date()} "
+                    f"au {df_hist_7['Date'].max().date()}"
+                )
+            with col2:
+                if not df_pred_7.empty:
+                    st.write("**Prédiction (7 jours)**")
+                    st.write(
+                        f"du {df_pred_7['Date'].min().date()} "
+                        f"au {df_pred_7['Date'].max().date()}"
+                    )
+                else:
+                    st.write("**Prédiction** : aucune donnée affichée")
