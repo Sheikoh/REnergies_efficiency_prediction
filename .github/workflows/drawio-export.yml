@@ -24,12 +24,12 @@ jobs:
         with:
           path: diagrams/architecture.drawio   # input file
           format: svg                          # output format
-          output: diagrams/architecture.svg    # output file
+          output: architecture.drawio.svg    # output file
 
       - name: Commit and push SVG
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
-          git add diagrams/architecture.svg
-          git commit -m "Auto-export updated architecture diagram .drawio to .svg"
+          git add diagrams/architecture.drawio.svg
+          git commit -m "Auto-export updated diagram architecture.drawio to .svg"
           git push
