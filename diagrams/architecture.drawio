@@ -164,7 +164,7 @@
           <mxGeometry x="278" y="480.9" width="28" height="39.64" as="geometry" />
         </mxCell>
         <mxCell id="89A6oZppyfyPb3ZWwoyM-1" value="&lt;span style=&quot;background-color: rgb(195, 171, 208);&quot;&gt;&lt;b&gt;Model training and serving&lt;/b&gt;&lt;/span&gt;" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" parent="1" vertex="1">
-          <mxGeometry x="374.5" y="180.6" width="163.5" height="26" as="geometry" />
+          <mxGeometry x="372.5" y="180.6" width="163.5" height="26" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
