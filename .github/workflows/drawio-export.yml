@@ -25,6 +25,11 @@ jobs:
           path: diagrams/architecture.drawio   # input file
           format: svg                          # output format
 
+      - name: Move exported file
+        run: |
+          mv diagrams/export/architecture.drawio.svg diagrams/architecture.svg
+          rm -rf diagrams/export
+
       - name: Commit and push SVG
         run: |
           git config --global user.name "github-actions"
