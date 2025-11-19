@@ -9,6 +9,7 @@ import app_func as af
 import boto3
 from dotenv import load_dotenv
 import os
+import rte
 # data = pd.read_excel("ibm_hr_attrition.xlsx", index_col=0)
 # model = joblib.load("model_ibm")
 
@@ -165,3 +166,23 @@ async def predict(file: UploadFile= File(...)):
     # Format response
     response = {"prediction": prediction.tolist()}
     return response
+
+@app.get("/load_rte_data", tags=["RTE"])
+async def load_rte_data():
+    if not rte.is_rte_data_already_downloaded():
+        try:
+            previous_data = rte.get_previous_rte_data()
+            en_cours_data = rte.en_cours_rte_data()
+
+            previous_data.append(en_cours_data)
+
+            df = pd.concat(previous_data, ignore_index=True)
+
+            rte.rte_df_to_csv(df)
+            
+            return "RTE data successfully uploaded"
+
+        except Exception as e:
+            return e
+    
+    return "RTE data is already downloaded today"
