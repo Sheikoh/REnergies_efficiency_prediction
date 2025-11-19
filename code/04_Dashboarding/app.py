@@ -1,6 +1,8 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import requests
+import logging
 
 # Configiration de l'application
 st.set_page_config(
@@ -72,6 +74,13 @@ def load_data():
 
     return df_nat_prep, df_reg_prep
 
+def load_rte():
+    response = requests.get("https://renergies99-api-renergy.hf.space/load_rte_data")
+    response.raise_for_status()
+
+    logging.info(response.content)
+
+
 def load_predictions_file() -> pd.DataFrame:
     """
    À adapter :
@@ -109,6 +118,8 @@ mode = st.sidebar.radio(
 
 # Chargement des données en cache
 df_nat, df_reg = load_data()
+
+load_rte()
 
 
 # MODE 1 : DESCRIPTIF
