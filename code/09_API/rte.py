@@ -1,0 +1,155 @@
+import io
+import requests
+import zipfile
+import pandas as pd
+from datetime import datetime
+from dotenv import load_dotenv
+import os
+
+
+now = datetime.now().strftime("%Y-%m-%d")
+path = "unzip"
+last_download_filename = "rte_last_download"
+
+
+def is_rte_data_already_downloaded():
+    try:
+        with open(f"{path}/{last_download_filename}", "r", encoding="utf-8") as f:
+            ligne = f.readline()
+    except:
+        return False
+
+    return now == ligne
+
+
+def fill_2024_columns(df):
+    new_cols = [
+        "Flux physiques d'Auvergne-Rhône-Alpes vers Auvergne-Rhône-Alpes",
+        "Flux physiques de Bourgogne-Franche-Comté vers Auvergne-Rhône-Alpes",
+        "Flux physiques de Bretagne vers Auvergne-Rhône-Alpes",
+        "Flux physiques de Centre-Val de Loire vers Auvergne-Rhône-Alpes",
+        "Flux physiques de Grand-Est vers Auvergne-Rhône-Alpes",
+        "Flux physiques de Hauts-de-France vers Auvergne-Rhône-Alpes",
+        "Flux physiques d'Ile-de-France vers Auvergne-Rhône-Alpes",
+        "Flux physiques de Normandie vers Auvergne-Rhône-Alpes",
+        "Flux physiques de Nouvelle-Aquitaine vers Auvergne-Rhône-Alpes",
+        "Flux physiques d'Occitanie vers Auvergne-Rhône-Alpes",
+        "Flux physiques de Pays-de-la-Loire vers Auvergne-Rhône-Alpes",
+        "Flux physiques de PACA vers Auvergne-Rhône-Alpes",
+        "Flux physiques de Auvergne-Rhône-Alpes vers Auvergne-Rhône-Alpes",
+        "Flux physiques de Auvergne-Rhône-Alpes vers Bourgogne-Franche-Comté",
+        "Flux physiques de Auvergne-Rhône-Alpes vers Bretagne",
+        "Flux physiques de Auvergne-Rhône-Alpes vers Centre-Val de Loire",
+        "Flux physiques de Auvergne-Rhône-Alpes vers Grand-Est",
+        "Flux physiques de Auvergne-Rhône-Alpes vers Hauts-de-France",
+        "Flux physiques de Auvergne-Rhône-Alpes vers Ile-de-France",
+        "Flux physiques de Auvergne-Rhône-Alpes vers Normandie",
+        "Flux physiques de Auvergne-Rhône-Alpes vers Nouvelle-Aquitaine",
+        "Flux physiques de Auvergne-Rhône-Alpes vers Occitanie",
+        "Flux physiques de Auvergne-Rhône-Alpes vers Pays-de-la-Loire",
+        "Flux physiques de Auvergne-Rhône-Alpes vers PACA",
+        "Flux physiques Allemagne vers Auvergne-Rhône-Alpes",
+        "Flux physiques Belgique vers Auvergne-Rhône-Alpes",
+        "Flux physiques Espagne vers Auvergne-Rhône-Alpes",
+        "Flux physiques Italie vers Auvergne-Rhône-Alpes",
+        "Flux physiques Luxembourg vers Auvergne-Rhône-Alpes",
+        "Flux physiques Royaume-Uni vers Auvergne-Rhône-Alpes",
+        "Flux physiques Suisse vers Auvergne-Rhône-Alpes",
+        "Flux physiques de Auvergne-Rhône-Alpes vers Allemagne",
+        "Flux physiques de Auvergne-Rhône-Alpes vers Belgique",
+        "Flux physiques de Auvergne-Rhône-Alpes vers Espagne",
+        "Flux physiques de Auvergne-Rhône-Alpes vers Italie",
+        "Flux physiques de Auvergne-Rhône-Alpes vers Luxembourg",
+        "Flux physiques de Auvergne-Rhône-Alpes vers Royaume-Uni",
+        "Flux physiques de Auvergne-Rhône-Alpes vers Suisse"
+    ]
+    position = 16
+    for i, col in enumerate(new_cols, start=1):
+        df.insert(position+i, col, "-")
+
+
+def get_previous_rte_data():
+    xls_list = [
+        "https://renergies99-bucket.s3.eu-west-3.amazonaws.com/public/prod/unzipped/regional/eCO2mix_RTE_Auvergne-Rh%C3%B4ne-Alpes_Annuel-Definitif_2021.xls",
+        "https://renergies99-bucket.s3.eu-west-3.amazonaws.com/public/prod/unzipped/regional/eCO2mix_RTE_Auvergne-Rh%C3%B4ne-Alpes_Annuel-Definitif_2022.xls",
+        "https://renergies99-bucket.s3.eu-west-3.amazonaws.com/public/prod/unzipped/regional/eCO2mix_RTE_Auvergne-Rh%C3%B4ne-Alpes_Annuel-Definitif_2023.xls",
+        "https://renergies99-bucket.s3.eu-west-3.amazonaws.com/public/prod/unzipped/regional/eCO2mix_RTE_Auvergne-Rh%C3%B4ne-Alpes_Annuel-Definitif_2024.xls"
+    ]
+
+    df_array = []
+
+    for xls_url in xls_list:
+        df = pd.read_csv(f"{xls_url}", encoding="ISO-8859-1", sep="\t")
+
+        if "2024" in xls_url:
+            fill_2024_columns(df)
+
+        df = df.iloc[:-1, :-1] #remove last line and last column
+
+        df_array.append(df)
+
+    return df_array
+
+
+def en_cours_rte_data():
+    response = requests.get("https://eco2mix.rte-france.com/download/eco2mix/eCO2mix_RTE_Auvergne-Rhone-Alpes_En-cours-TR.zip")
+    response.raise_for_status()
+
+    with zipfile.ZipFile(io.BytesIO(response.content)) as zip_ref:
+        zip_ref.extractall(path)
+
+    # the file is upposed to be encoded in ISO-8859-1
+    df = pd.read_csv(f"{path}/eCO2mix_RTE_Auvergne-Rhone-Alpes_En-cours-TR.xls", encoding="ISO-8859-1", sep="\t")
+    df = df.iloc[:-1, :-1] #remove last line and last column
+    df = df[df["Date"] != now]
+    
+    return df
+
+
+def rte_df_to_csv(df):
+    load_dotenv()
+
+    API_KEY_S3 = os.environ["AWS_ACCESS_KEY_ID"]
+    API_SECRET_KEY_S3 = os.environ["AWS_SECRET_ACCESS_KEY"]
+
+    final_csv_filename = "eCO2mix_RTE_Auvergne-Rhone-Alpes.csv"
+    
+    df = df[~df["Heures"].str.contains(":15|:45")]
+
+    # Sélection automatique des colonnes TCO... (%) ou TCH... (%) si besoin
+    cols_pct = [c for c in df.columns if "TCO" in c or "TCH" in c]
+
+    # Conversion en float
+    df[cols_pct] = df[cols_pct].apply(
+        lambda col: pd.to_numeric(col, errors="coerce")
+    )
+
+    df.to_csv(
+        f"s3://renergies99-bucket/public/prod/{final_csv_filename}",
+        index=False,
+        storage_options={
+            "key": API_KEY_S3,
+            "secret": API_SECRET_KEY_S3,
+        },
+    )
+
+
+    try:
+        with open(f"{path}/{last_download_filename}", "w", encoding="utf-8") as f:
+            f.write(now)
+
+    except:
+        print(f"Cannot write to {path}/{final_csv_filename}")
+
+"""
+if __name__ == "__main__":
+    if not is_rte_data_already_downloaded():
+        previous_data = get_previous_rte_data()
+        en_cours_data = en_cours_rte_data()
+
+        previous_data.append(en_cours_data)
+
+        df = pd.concat(previous_data, ignore_index=True)
+
+        rte_df_to_csv(df)
+"""
