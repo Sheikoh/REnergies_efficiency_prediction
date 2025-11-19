@@ -2,7 +2,10 @@
 import requests
 import pandas as pd
 from datetime import date, timedelta
-from func_utils.utils import mean, daterange
+from utils import mean, daterange
+import boto3
+import os
+from dotenv import load_dotenv
 
 ### General functions
 
@@ -18,9 +21,14 @@ from func_utils.utils import mean, daterange
 
 ###Requesting the data
 
-def req_solar(base_url, date):
+# 
 
-    file= f'{date.year}'+f'{date.month:02}'+f'{date.day:02}'+"SGAS.txt"
+def req_solar(base_url, date, case='predi'):
+
+    case_dic = {'predi' : "daypre.txt",
+                'historic' : "SGAS.txt"}
+
+    file= f'{date.year}'+f'{date.month:02}'+f'{date.day:02}'+case_dic[case]
     url = f"{base_url}/{date.year}/{f'{date.month:02}'}/{file}"
     daily = {"date" : date}
     print(url)
@@ -30,6 +38,7 @@ def req_solar(base_url, date):
     else:
         #Return an empty list to avoid breaking the data collection process if missing file.
         return [], daily
+    
 
 ### Splitting the response text in different paragraphs
 def split_response(text):
@@ -41,6 +50,9 @@ def split_response(text):
     text_D, text_split_temp = text_split_temp.split("\nE.")
     text_E, text_F = text_split_temp.split("\nF.")
     return text_A, text_B, text_C, text_D, text_E, text_F
+
+def split_predi(text):
+    return
 
 ### data collection for the different paragraphs
 #Treatment of section A : event occurences
@@ -106,8 +118,8 @@ def coll_data_E(text_E, daily):
     return daily
 
 ### The complete workflow for a single file, returning a one-line dataframe.
-def extract_date(base_url, single_date):
-    data, daily = req_solar(base_url, single_date)
+def extract_date(base_url, single_date, case):
+    data, daily = req_solar(base_url, single_date, case=case)
     if len(data) >1:
         text_A, text_B, text_C, _, text_E, text_F = split_response(data) #The section D of the text is not used because obsolete
         daily = coll_data_A(text_A, daily)
@@ -119,3 +131,94 @@ def extract_date(base_url, single_date):
         date_df = pd.DataFrame(daily, index=[single_date])
         return date_df
 
+
+#--- saving to s3
+def session_boto():
+    # """
+    # create a boto session
+    # """
+    
+    load_dotenv()
+
+    API_KEY_S3 = os.environ["AWS_ACCESS_KEY_ID"]
+    API_SECRET_KEY_S3 = os.environ["AWS_SECRET_ACCESS_KEY"]
+
+    bucket_name = "renergies99-bucket"
+    
+
+    # Liste des dossiers locaux à uploader
+    folders_to_upload = ["prod", "solar", "LandSat", "openweathermap"]
+
+    # Session Boto3
+    session = boto3.Session(
+        aws_access_key_id=API_KEY_S3,
+        aws_secret_access_key=API_SECRET_KEY_S3,
+        region_name="eu-west-3",
+    )
+
+    s3 = session.resource("s3")
+    bucket = s3.Bucket(bucket_name)
+    return bucket
+
+def to_boto(bucket, file):
+    s3_prefix = "public/solar/" 
+    s3_key = "predi_data.csv"
+    bucket.put_object(
+        Body = file,
+        Key = s3_prefix+s3_key,
+        ACL = 'public-read-write'
+    )
+
+#----Extractiont Prediction data------
+
+def get_date(info):
+    day = info[2].split()
+    ind = [f'{day[x]}-{day[x+1]}-{day[x+2]}' for x in range(0,len(day), 3)]
+    ind = pd.to_datetime(ind)
+    return ind
+
+def get_data(info):
+
+    data = []
+    info_joined = ' '.join(info)
+    info_split = info_joined.splitlines()[2:]
+    for line in info_split:
+        if 'Solar' in info_joined:
+            data.append([float(x) for x in line.split()])
+        else:
+            data.append([float(x) for x in line.split()[1:]])
+        df_temp = pd.DataFrame(data)
+    return df_temp.mean().tolist()
+
+
+def solar_predi_parse(text):
+    col_name = {
+        'Geomagnetic_A_indices' : 'Ap',
+        'Pred_Mid_k' : 'K index Planetary',
+        '10cm_flux' : '10cm'
+    }
+    # col = []
+    test_split = text.split('#')[6:]
+    for i in range(0, len(test_split), 2):
+        if len(test_split[i]) > 3:
+            info = test_split[i].split(':')
+            if i == 0:
+                ind = get_date(info)
+                # col.append(info[3])
+                data = get_data(info[4:])
+                df = pd.DataFrame(data, columns=[info[3]], index=ind)
+            else:
+                # col.append(info[1])
+                print(info)
+                if info[1] not in ['Polar_cap', 'Reg_Prob']:
+                    
+                    data = get_data(info)
+                    print(data)
+                    df[info[1]] = data
+
+    df = df.rename(columns=col_name)
+    bucket = session_boto()
+    to_boto(bucket, df.to_csv())
+
+    return df
+            

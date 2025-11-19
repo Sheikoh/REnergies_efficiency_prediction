@@ -10,7 +10,7 @@ end_date = date(2025, 10, 1)
 
 ### Retrieval loop between start_date and end_date
 solar_data = pd.DataFrame()
-for single_date in daterange(start_date, end_date):
+for single_date in daterange(start_date, end_date, case='predi'):
     print(single_date.strftime("%Y-%m-%d"))
     df_temp = extract_date(base_url, single_date)
     solar_data = pd.concat([solar_data, df_temp])

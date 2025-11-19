@@ -133,8 +133,10 @@ async def predict(predictionFeatures: dict[str, Union[str, float]]):
 
     # Format response
     response = {"prediction": prediction.tolist()[0]}
+    hist_df = pd.read_csv('https://renergies99-bucket.s3.eu-west-3.amazonaws.com/public/prediction/predi.csv')
     resp_df = pd.DataFrame(response, index=list(range(len(response))))
-    resp_toboto = resp_df.to_csv()
+    all_predi = pd.concat([resp_df, hist_df])
+    resp_toboto = all_predi.to_csv()
     af.to_boto(bucket, resp_toboto)
     return response
 
