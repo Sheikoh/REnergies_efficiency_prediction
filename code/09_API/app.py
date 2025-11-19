@@ -107,7 +107,7 @@ async def predict(predictionFeatures: dict[str, Union[str, float]]):
     """
 
     # Set your variables for your environment
-    EXPERIMENT_NAME="first_weather_models"
+    EXPERIMENT_NAME="all_columns_models"
     # Set experiment's info 
     mlflow.set_experiment(EXPERIMENT_NAME)
 
@@ -117,7 +117,7 @@ async def predict(predictionFeatures: dict[str, Union[str, float]]):
     print('good_df')
 
     # Log model from mlflow 
-    logged_model = 'runs:/d81138d3368d4c048bafd9c7fefd70d5/model'
+    logged_model = 'runs:/5af5104e94fe40d2948ca5471e2e7d72/pipeline_model'
     # logged_model = "s3://renergies99-mlflow/4/d81138d3368d4c048bafd9c7fefd70d5/artifacts/model"
     print(logged_model)
 
