@@ -160,12 +160,10 @@ def session_boto():
     bucket = s3.Bucket(bucket_name)
     return bucket
 
-def to_boto(bucket, file):
-    s3_prefix = "public/solar/" 
-    s3_key = "predi_data.csv"
+def to_boto(bucket, folder, key, file):
     bucket.put_object(
         Body = file,
-        Key = s3_prefix+s3_key,
+        Key = folder+key,
         ACL = 'public-read-write'
     )
 
@@ -218,7 +216,7 @@ def solar_predi_parse(text):
 
     df = df.rename(columns=col_name)
     bucket = session_boto()
-    to_boto(bucket, df.to_csv())
+    to_boto(bucket, "public/solar", "predi_data.csv", df.to_csv())
 
     return df
             

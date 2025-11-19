@@ -114,8 +114,7 @@ async def predict(predictionFeatures: dict[str, Union[str, float]]):
 
     print(predictionFeatures)
     # Read data 
-    data_employee = pd.DataFrame([predictionFeatures])
-    print('good_df')
+    data = pd.DataFrame([predictionFeatures])
 
     # Log model from mlflow 
     logged_model = 'runs:/5af5104e94fe40d2948ca5471e2e7d72/pipeline_model'
@@ -129,7 +128,7 @@ async def predict(predictionFeatures: dict[str, Union[str, float]]):
     # If you want to load model persisted locally
     # loaded_model = joblib.load('model_ibm')
 
-    prediction = loaded_model.predict(data_employee)
+    prediction = loaded_model.predict(data)
     print(prediction)
 
     # Format response
@@ -144,24 +143,26 @@ async def predict(predictionFeatures: dict[str, Union[str, float]]):
 @app.post("/predict_live", tags=["Machine Learning"])
 async def predict(file: UploadFile= File(...)):
     """
-    Prediction of attrition for an employee! 
+    Prediction of solar panel output based on weather and solar data 
     """
     
-    data_employees = pd.read_csv(file.file)
-    print(data_employees)
+    data = pd.read_csv(file.file)
+    time = data['time']
+    data = data.drop('time', axis=1)
+    print(data)
     # Read data 
     # data_employee = pd.DataFrame([prediction_data])
 
     # Log model from mlflow 
-    # logged_model = 'runs:/c09d09ef14e546b08f2f339d2c966da6/salary_estimator'
+    logged_model = 'runs:/5af5104e94fe40d2948ca5471e2e7d72/pipeline_model'
 
     # # Load model as a PyFuncModel.
     # loaded_model = mlflow.pyfunc.load_model(logged_model)
 
     # If you want to load model persisted locally
-    loaded_model = joblib.load('model_ibm')
+    loaded_model = mlflow.pyfunc.load_model(logged_model)
 
-    prediction = loaded_model.predict(data_employees)
+    prediction = loaded_model.predict(data)
 
     # Format response
     response = {"prediction": prediction.tolist()}
