@@ -4,4 +4,4 @@ Jedha bootcamp final project. Prediction of the Renewable energy sources output 
 ## Architecture Diagrams
 
 ### Simplified architecture
-![Frontend Architecture](diagrams/exports/architecture-simplified.svg)
+![Simplified Architecture](diagrams/export/architecture-simplified.svg)
