@@ -16,7 +16,7 @@ import pvlib
 
 #--------------COLLECT DATA FUNCTIONS---------------------------------------
 #---Prod
-def data_collection_prod(url='s3://renergies99-bucket/public/prod/eCO2mix_RTE_Auvergne-Rhone-Alpes_cleaned.csv'):
+def data_collection_prod(url='https://renergies99-bucket.s3.eu-west-3.amazonaws.com/public/prod/eCO2mix_RTE_Auvergne-Rhone-Alpes_cleaned.csv'):
 
     # read csv
     df_prod = pd.read_csv(url)
@@ -34,10 +34,12 @@ def data_coll_solar(url='https://renergies99-bucket.s3.eu-west-3.amazonaws.com/p
     # data_solar["date"] is the uploaded date of the data
     data_solar['Date'] = (pd.to_datetime(data_solar["date"], format="%Y-%m-%d") - timedelta(days=1)).apply(lambda a_date: a_date.strftime("%Y-%m-%d"))
     data_solar.drop(columns=["Unnamed: 0", "date"], inplace=True)
+
+    data_solar['Time'] = pd.to_datetime(data_solar['Date'])
     
     return data_solar
 
-def merge_solar_data(weather_data, solar_data):
+def merge_weather_and_solar_data(weather_data, solar_data):
     """
     Function designed to merge the solar_dataframe to the data_weather dataframe.
     the data_weather dataframe is a merge from dataframes by cities 
@@ -47,13 +49,15 @@ def merge_solar_data(weather_data, solar_data):
     solar_columns_to_use = solar_data.columns
     solar_data_limited = solar_data[solar_columns_to_use]
     weather_data["Date"] = weather_data["Time"].apply(lambda a_time: a_time.date().strftime("%Y-%m-%d"))
+    print(weather_data['Time'][0])
     
-    targeted_weather_data = weather_data.merge(solar_data_limited, on='Date', how='inner')
-
+    targeted_weather_data = weather_data.merge(solar_data, on='Date', how='inner')
+    #print(targeted_weather_data['Time'][0])
+    print(targeted_weather_data.columns)
     return targeted_weather_data
 
 #---LandSat
-def data_coll_landsat(url ='s3://renergies99-bucket/public/LandSat/result_EarthExplorer_region_ARA.csv'):
+def data_coll_landsat(url ='https://renergies99-bucket.s3.eu-west-3.amazonaws.com/public/LandSat/result_EarthExplorer_region_ARA.csv'):
 
     # read csv
     df_sat = pd.read_csv(url, encoding='ISO-8859-1', sep=';')
@@ -69,7 +73,7 @@ def data_coll_landsat(url ='s3://renergies99-bucket/public/LandSat/result_EarthE
     return data_sat
 
 #---OpenWeather
-def data_coll_weather(url ='s3://renergies99-bucket/public/openweathermap/merge_openweathermap_cleaned.csv'):
+def data_coll_weather(url ='https://renergies99-bucket.s3.eu-west-3.amazonaws.com/public/openweathermap/merge_openweathermap_cleaned.csv'):
     # read csv
     df_weather = pd.read_csv(url)
     data_weather = df_weather.copy()
@@ -226,7 +230,7 @@ def preprocess(data):
     return
 
 
-def data_prep(merged_data):
+def data_prep_and_split(merged_data):
     """
     Preprocessing of the data.
     Up to date: Production data and Landsat (meta)data / standard scaler
