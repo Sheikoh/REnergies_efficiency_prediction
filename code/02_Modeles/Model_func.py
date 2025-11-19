@@ -194,12 +194,30 @@ def merge_weather_solar_landsat_data(weather_df, solar_df, landsat_df):
 
     df_weather_solar = merge_weather_solar_data(weather_data, solar_data)
 
-    df_weather_solar['Time_temp'] = pd.to_datetime(df_weather_solar['Time'].dt.date)
-    landsat_data['Time_temp'] = pd.to_datetime(landsat_data['Time'].dt.date)
+    # df_weather_solar['Time_temp'] = pd.to_datetime(df_weather_solar['Time'].dt.date)
+    # landsat_data['Time_temp'] = pd.to_datetime(landsat_data['Time'].dt.date)
 
-    merged_data = df_weather_solar.merge(landsat_data, on='Time_temp', how='left', suffixes=(None, '_sat'))
-    merged_data = merged_data.drop(columns=['Time_temp'])
+    merged_data = df_weather_solar.merge(landsat_data, on='Time', how='left', suffixes=(None, '_sat'))
+    # merged_data = merged_data.drop(columns=['Time_temp'])
         
+    return merged_data
+
+#------------- DATA PREP --------------------------------------
+# Data prep = data collect + merge the 3 datasets
+def data_prep(weather_data_path, solar_data_path, landsat_data_path):
+    """
+    Collect data from the 3 sources openweather, solar and landsat
+    Returns a dataframe with :
+     - all columns from sources
+     - columns with solar position 
+     - a column 'Time' (datetime) + a column month
+     """
+    collected_weather_data = data_collection_weather(weather_data_path)
+    collected_solar_data = data_coll_solar(solar_data_path)
+    collected_landsat_data = data_coll_landsat(landsat_data_path)
+
+    merged_data = merge_weather_solar_landsat_data(
+        collected_weather_data, collected_solar_data, collected_landsat_data)
     return merged_data
 
 #--------------ADD TARGET---------------------------------------

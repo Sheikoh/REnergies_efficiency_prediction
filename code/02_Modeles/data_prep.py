@@ -15,5 +15,6 @@ collected_weather_data = mf.data_collection_weather(weather_data_path) # collect
 collected_solar_data = mf.data_coll_solar(solar_data_path)
 collected_landsat_data = mf.data_coll_landsat(landsat_data_path)
 
+
 merged_data = mf.merge_weather_solar_landsat_data(collected_weather_data, collected_solar_data, collected_landsat_data)
 
