@@ -424,69 +424,85 @@ if mode == "Descriptif":
 
 # MODE 2 : PRÉDICTION
 elif mode == "Prédiction":
-    st.title("Taux de charge solaire en (%)")
+    st.title("Taux de charge solaire en (%) – Auvergne-Rhône-Alpes")
 
     # Vérifier que la colonne existe bien dans df_reg
     if COL_TCH not in df_reg.columns:
         st.error(f"La colonne '{COL_TCH}' n'existe pas dans le dataset régional.")
+        st.stop()
+
+    # 1) HISTORIQUE : 7 derniers jours
+    df_hist_all = get_daily_tch_solaire_regional(df_reg).sort_values("Date")
+
+    if df_hist_all.empty:
+        st.error("Impossible de calculer l'historique quotidien sur df_reg.")
+        st.stop()
+
+    # 7 derniers jours (au sens des 7 dernières dates disponibles)
+    df_hist_7 = df_hist_all.tail(7)
+
+    # 2) PREDICTIONS : 7 prochains jours
+    df_pred_all = load_predictions_file()
+
+    if df_pred_all.empty:
+        df_pred_7 = pd.DataFrame()
+        st.info("Aucune prédiction valide chargée (vérifier le fichier de prédiction).")
     else:
-        # 1) HISTORIQUE : 7 derniers jours
-        df_hist_all = get_daily_tch_solaire_regional(df_reg).sort_values("Date")
+        df_pred_all = df_pred_all.sort_values("Date")
+        # 7 premiers jours de prédiction
+        df_pred_7 = df_pred_all.head(7)
 
-        if df_hist_all.empty:
-            st.error("Impossible de calculer l'historique quotidien sur df_reg.")
+        # Raccord historique / prédiction
+        # Ajoute comme premier point de la série "Prédiction"
+        # Puis dernier point historique
+        last_hist_date = df_hist_7["Date"].max()
+        last_hist_value = df_hist_7[COL_TCH].iloc[-1]
+        first_pred_date = df_pred_7["Date"].min()
+
+        if first_pred_date > last_hist_date:
+            raccord = pd.DataFrame({
+                "Date": [last_hist_date],
+                COL_TCH: [last_hist_value],
+                "type": ["Prédiction"]
+            })
+            df_pred_7 = pd.concat([raccord, df_pred_7], ignore_index=True)
+
+    # 3) DATAFRAME FINAL POUR LE GRAPHIQUE
+    if not df_pred_7.empty:
+        df_plot = pd.concat([df_hist_7, df_pred_7], ignore_index=True)
+    else:
+        df_plot = df_hist_7.copy()
+
+    # 4) GRAPHIQUE
+    fig = px.line(
+        df_plot,
+        x="Date",
+        y=COL_TCH,  
+        color="type",
+        title="Prédiction taux de charge solaire en (%) – Auvergne-Rhône-Alpes",
+        labels={
+            "Date": "Date",
+            COL_TCH: "TCH Solaire (%)",
+            "type": "Série"
+        }
+    )
+
+    st.plotly_chart(fig, use_container_width=True)
+
+    # 5) Récap en dessous
+    col1, col2 = st.columns(2)
+    with col1:
+        st.write("**Historique (7 jours)**")
+        st.write(
+            f"du {df_hist_7['Date'].min().date()} "
+            f"au {df_hist_7['Date'].max().date()}"
+        )
+    with col2:
+        if not df_pred_7.empty:
+            # On ignore éventuellement le point de raccord s'il tombe le même jour
+            pred_start = df_pred_7["Date"].min().date()
+            pred_end = df_pred_7["Date"].max().date()
+            st.write("**Prédiction (7 jours)**")
+            st.write(f"du {pred_start} au {pred_end}")
         else:
-            # 7 derniers jours (au sens des 7 dernières dates disponibles)
-            df_hist_7 = df_hist_all.tail(7)
-
-            # 2) PREDICTIONS : 7 prochains jours
-            df_pred_all = load_predictions_file()
-
-            if df_pred_all.empty:
-                df_pred_7 = pd.DataFrame()
-                st.info("Aucune prédiction valide chargée (vérifier le fichier).")
-            else:
-                df_pred_all = df_pred_all.sort_values("Date")
-                # 7 premiers jours de prédiction
-                df_pred_7 = df_pred_all.head(7)
-
-            # 3) DATAFRAME
-            if not df_pred_7.empty:
-                df_plot = pd.concat([df_hist_7, df_pred_7], ignore_index=True)
-            else:
-                df_plot = df_hist_7.copy()
-
-            # 4) GRAPHIQUE
-            fig = px.line(
-                df_plot,
-                x="Date",
-                y=COL_TCH,
-                color="type",
-                title="Prédiction taux de charge solaire en (%) – Auvergne-Rhône-Alpes",
-                labels={
-                    "Date": "Date",
-                    COL_TCH: "TCH Solaire (%)",
-                    "type": "Série"
-                }
-            )
-            # Activation du connecteur entre historique et prédiction
-            fig.update_traces(connectgaps=True)
-            st.plotly_chart(fig, use_container_width=True)
-
-            # Récap en bas de line chart
-            col1, col2 = st.columns(2)
-            with col1:
-                st.write("**Historique (7 jours)**")
-                st.write(
-                    f"du {df_hist_7['Date'].min().date()} "
-                    f"au {df_hist_7['Date'].max().date()}"
-                )
-            with col2:
-                if not df_pred_7.empty:
-                    st.write("**Prédiction (7 jours)**")
-                    st.write(
-                        f"du {df_pred_7['Date'].min().date()} "
-                        f"au {df_pred_7['Date'].max().date()}"
-                    )
-                else:
-                    st.write("**Prédiction** : aucune donnée affichée")
+            st.write("**Prédiction** : aucune donnée affichée")
