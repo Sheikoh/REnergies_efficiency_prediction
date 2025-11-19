@@ -6,6 +6,4 @@ Jedha bootcamp final project. Prediction of the Renewable energy sources output 
 ### Simplified architecture
 ![Simplified Architecture](diagrams/export/architecture-simplified.svg)
 
-<a href="https://app.diagrams.net/?src=about#HSheikoh%2FREnergies_efficiency_prediction%2Fmain%2Fdiagrams%2Farchitecture.drawio#%7B%22pageId%22%3A%22bG0RTmb4xdSiPlx_l64v%22%7D" target="_blank">
-Source diagram in Draw.io
-</a>
+Source diagram in [draw.io](https://app.diagrams.net/?src=about#HSheikoh%2FREnergies_efficiency_prediction%2Fmain%2Fdiagrams%2Farchitecture.drawio#%7B%22pageId%22%3A%22bG0RTmb4xdSiPlx_l64v%22%7D)
