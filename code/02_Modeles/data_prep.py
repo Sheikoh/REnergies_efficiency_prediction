@@ -1,43 +1,19 @@
+#----IMPORT LIBRAIRIES----
 import pandas as pd
-import plotly
-import plotly.express as px
-import plotly.graph_objects as go
-import matplotlib.pyplot as plt
-import seaborn as sns
-
-import pvlib
-
-import mlflow
-from sklearn.compose import ColumnTransformer
-from sklearn.preprocessing import StandardScaler
-from sklearn.pipeline import Pipeline
-from sklearn.linear_model import LinearRegression
-from sklearn.model_selection import train_test_split
-
 import Model_func as mf
-import boto3
-
-from dotenv import load_dotenv
-import os
-
-#----VARIABLES------
-data_weather_path = 'https://renergies99-bucket.s3.eu-west-3.amazonaws.com/public/openweathermap/merge_openweathermap_cleaned.csv'
-data_prod_path = 'https://renergies99-bucket.s3.eu-west-3.amazonaws.com/public/prod/eCO2mix_RTE_Auvergne-Rhone-Alpes_cleaned.csv'
-features = ['temp', 'pressure', 'humidity', 'clouds'] #add sunset-sunrise
-target = ['tch_solaire_(%)']
 
 
-#----DATA COLLECTION--------------
-collected_weather_data = mf.data_collection_weather(data_weather_path)
-collected_prod_data = mf.data_collection_prod(data_prod_path)
+#---VARIABLES----
+weather_data_path = 'https://renergies99-bucket.s3.eu-west-3.amazonaws.com/public/openweathermap/merge_openweathermap_cleaned.csv'
+solar_data_path = 'https://renergies99-bucket.s3.eu-west-3.amazonaws.com/public/solar/raw_solar_data.csv'
+landsat_data_path = 'https://renergies99-bucket.s3.eu-west-3.amazonaws.com/public/LandSat/result_EarthExplorer_region_ARA.csv'
 
-#---DATA PREP FOR ML----
-prep_data = mf.data_prep_for_ML(collected_weather_data, features)
+#--- DATA PREP ---
+# Data prep = data collect + merge the 3 datasets
 
-#-----ADD TARGET------
-targeted_weather_data = mf.add_target(collected_weather_data, collected_prod_data)
+collected_weather_data = mf.data_collection_weather(weather_data_path) # collect data and format columns per city
+collected_solar_data = mf.data_coll_solar(solar_data_path)
+collected_landsat_data = mf.data_coll_landsat(landsat_data_path)
 
-#------Machine Learning------
-#split
-#fit
-# pipeline pour le tracker dans MLflow
+merged_data = mf.merge_weather_solar_landsat_data(collected_weather_data, collected_solar_data, collected_landsat_data)
+

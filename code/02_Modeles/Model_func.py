@@ -39,23 +39,6 @@ def data_coll_solar(url='https://renergies99-bucket.s3.eu-west-3.amazonaws.com/p
     
     return data_solar
 
-def merge_weather_and_solar_data(weather_data, solar_data):
-    """
-    Function designed to merge the solar_dataframe to the data_weather dataframe.
-    the data_weather dataframe is a merge from dataframes by cities 
-        (see also split_data_weather_by_city() and  merge_weather_dfs_by_city())
-    """
-    # select columns from solar data
-    solar_columns_to_use = solar_data.columns
-    solar_data_limited = solar_data[solar_columns_to_use]
-    weather_data["Date"] = weather_data["Time"].apply(lambda a_time: a_time.date().strftime("%Y-%m-%d"))
-    print(weather_data['Time'][0])
-    
-    targeted_weather_data = weather_data.merge(solar_data, on='Date', how='inner')
-    #print(targeted_weather_data['Time'][0])
-    print(targeted_weather_data.columns)
-    return targeted_weather_data
-
 #---LandSat
 def data_coll_landsat(url ='https://renergies99-bucket.s3.eu-west-3.amazonaws.com/public/LandSat/result_EarthExplorer_region_ARA.csv'):
 
@@ -80,6 +63,7 @@ def data_coll_weather(url ='https://renergies99-bucket.s3.eu-west-3.amazonaws.co
 
     # formatting the date for future data merge operations
     data_weather['Time'] = pd.to_datetime(data_weather['dt'])
+    data_weather['Month'] = data_weather['Time'].dt.month
     return data_weather
 
 def get_solarposition(time, latitude, longitude):
@@ -184,6 +168,39 @@ def data_collection_weather(data_path):
     dfs_by_city = split_data_weather_by_city(weather_data)
     collected_data = merge_weather_dfs_by_city(dfs_by_city)
     return collected_data
+
+#---------------MERGE COLLECTED DATA------------------------------
+def merge_weather_solar_data(weather_df, solar_df):
+    """
+    Function designed to merge the solar_dataframe to the data_weather dataframe.
+    the data_weather dataframe is a merge from dataframes by cities 
+        (see also split_data_weather_by_city() and  merge_weather_dfs_by_city())
+    """
+    weather_data = weather_df.copy()
+    solar_data = solar_df.copy()
+
+    weather_data['Time_temp'] = pd.to_datetime(weather_data['Time'].dt.date)
+    merged_data = weather_data.merge(solar_data, left_on='Time_temp', right_on='Time', how='inner', suffixes=(None, '_y'))
+    
+    merged_data = merged_data.drop(columns=['Time_temp', 'Time_y'])
+
+    return merged_data
+
+
+def merge_weather_solar_landsat_data(weather_df, solar_df, landsat_df):
+    weather_data = weather_df.copy()
+    solar_data = solar_df.copy()
+    landsat_data = landsat_df.copy()
+
+    df_weather_solar = merge_weather_solar_data(weather_data, solar_data)
+
+    df_weather_solar['Time_temp'] = pd.to_datetime(df_weather_solar['Time'].dt.date)
+    landsat_data['Time_temp'] = pd.to_datetime(landsat_data['Time'].dt.date)
+
+    merged_data = df_weather_solar.merge(landsat_data, on='Time_temp', how='left', suffixes=(None, '_sat'))
+    merged_data = merged_data.drop(columns=['Time_temp'])
+        
+    return merged_data
 
 #--------------ADD TARGET---------------------------------------
 def add_target(df_data, df_target, target_columns_to_use=['Time', 'tch_solaire_(%)']):
