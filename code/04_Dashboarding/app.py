@@ -424,7 +424,7 @@ if mode == "Descriptif":
 
 # MODE 2 : PRÉDICTION
 elif mode == "Prédiction":
-    st.title("Taux de chage solaire en (%)")
+    st.title("Taux de charge solaire en (%)")
 
     # Vérifier que la colonne existe bien dans df_reg
     if COL_TCH not in df_reg.columns:
@@ -469,10 +469,11 @@ elif mode == "Prédiction":
                     "type": "Série"
                 }
             )
-
+            # Activation du connecteur entre historique et prédiction
+            fig.update_traces(connectgaps=True)
             st.plotly_chart(fig, use_container_width=True)
 
-            # Récap
+            # Récap en bas de line chart
             col1, col2 = st.columns(2)
             with col1:
                 st.write("**Historique (7 jours)**")
