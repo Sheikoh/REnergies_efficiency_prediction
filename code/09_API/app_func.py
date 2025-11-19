@@ -41,5 +41,6 @@ def to_boto(bucket, predi):
     s3_key = "predi.csv"
     bucket.put_object(
         Body = predi,
-        Key = s3_prefix+s3_key
+        Key = s3_prefix+s3_key,
+        ACL = 'public-read-write'
     )
