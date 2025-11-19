@@ -1,5 +1,8 @@
 name: Export Draw.io Diagrams
 
+permissions:
+  contents: write   # allow pushing commits
+
 on:
   push:
     # Trigger only when this specific file changes
@@ -24,7 +27,7 @@ jobs:
         with:
           path: diagrams/architecture.drawio   # input file
           format: svg                          # output format
-          all-pages: true
+          all-pages: true                      # export each page separately
       
       - name: Debug export output
         run: ls -R diagrams
@@ -33,10 +36,10 @@ jobs:
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
-          git add diagrams/export/architecture-simplified.svg || true
+          git add diagrams/export/*.svg || true
           if git diff --cached --quiet; then
             echo "No changes to commit"
           else
             git commit -m "Auto-export updated diagram architecture.drawio to .svg"
-            git push
+            git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git HEAD:main
           fi
