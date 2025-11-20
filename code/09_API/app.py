@@ -10,6 +10,7 @@ import boto3
 from dotenv import load_dotenv
 import os
 import rte
+import openweathermap as owm
 # data = pd.read_excel("ibm_hr_attrition.xlsx", index_col=0)
 # model = joblib.load("model_ibm")
 
@@ -170,6 +171,9 @@ async def predict(file: UploadFile= File(...)):
 
 @app.get("/load_rte_data", tags=["RTE"])
 async def load_rte_data():
+    """
+    Load RTE data
+    """
     if not rte.is_rte_data_already_downloaded():
         try:
             previous_data = rte.get_previous_rte_data()
@@ -190,8 +194,31 @@ async def load_rte_data():
 
 @app.get("/rte_last_download", tags=["RTE"])
 async def rte_last_download():
+    """
+    Get the date of the last downloaded version of RTE data
+    """
     return rte.get_rte_last_download()
 
 @app.get("/load_openweathermap_forecasts", tags=["Openweathermap"])
 async def load_openweathermap_forecasts():
-    pass
+    """
+    Load Openweathermap data for forecasting
+    """
+    if not owm.is_openweathermap_data_already_downloaded():
+        try:
+            cities_coord = owm.get_city_data()
+            owm.load_openweathermap_data(cities_coord)
+            
+            return "Openweathermap data successfully uploaded"
+
+        except Exception as e:
+            return e
+    
+    return "Openweathermap data is already downloaded today"
+
+@app.get("/openweathermap_last_download", tags=["Openweathermap"])
+async def openweathermap_last_download():
+    """
+    Get the date of the last downloaded version of Openweathermap data
+    """
+    return owm.get_openweathermap_last_download()
