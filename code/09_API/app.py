@@ -170,20 +170,24 @@ async def predict(file: UploadFile= File(...)):
 
 @app.get("/load_rte_data", tags=["RTE"])
 async def load_rte_data():
-    if not rte.is_rte_data_already_downloaded():
-        try:
-            previous_data = rte.get_previous_rte_data()
-            en_cours_data = rte.en_cours_rte_data()
+    #if not rte.is_rte_data_already_downloaded():
+    try:
+        previous_data = rte.get_previous_rte_data()
+        en_cours_data = rte.en_cours_rte_data()
 
-            previous_data.append(en_cours_data)
+        previous_data.append(en_cours_data)
 
-            df = pd.concat(previous_data, ignore_index=True)
+        df = pd.concat(previous_data, ignore_index=True)
 
-            rte.rte_df_to_csv(df)
-            
-            return "RTE data successfully uploaded"
+        rte.rte_df_to_csv(df)
+        
+        return "RTE data successfully uploaded"
 
-        except Exception as e:
-            return e
+    except Exception as e:
+        return e
     
-    return "RTE data is already downloaded today"
+    #return "RTE data is already downloaded today"
+
+@app.get("/load_openweathermap_forecasts", tags=["Openweathermap"])
+async def load_openweathermap_forecasts():
+    pass
