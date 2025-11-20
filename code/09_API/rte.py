@@ -151,14 +151,6 @@ def rte_df_to_csv(df):
         },
     )
 
-    """
-    try:
-        with open(f"{path}/{last_download_filename}", "w", encoding="utf-8") as f:
-            f.write(now)
-
-    except:
-        print(f"Cannot write to {path}/{final_csv_filename}")
-    """
     key = f"public/prod/{last_download_filename}"
 
     s3.put_object(

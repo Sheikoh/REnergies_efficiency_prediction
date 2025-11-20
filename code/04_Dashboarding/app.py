@@ -81,6 +81,12 @@ def load_rte():
 
     logging.info(response.content)
 
+def load_openweathermap_forecasts():
+    logging.info("LOAD_OPENWEATHERMAP_FORECASTS")
+    response = requests.get("https://renergies99-api-renergy.hf.space/load_openweathermap_forecasts")
+    response.raise_for_status()
+
+    logging.info(response.content)
 
 def load_predictions_file() -> pd.DataFrame:
     """
@@ -121,6 +127,8 @@ mode = st.sidebar.radio(
 df_nat, df_reg = load_data()
 
 load_rte()
+
+load_openweathermap_forecasts()
 
 
 # MODE 1 : DESCRIPTIF
