@@ -44,3 +44,6 @@ def to_boto(bucket, predi):
         Key = s3_prefix+s3_key,
         ACL = 'public-read-write'
     )
+
+def predi_error(x):
+    

@@ -103,8 +103,10 @@ def coll_data_E(text_E, daily):
     K_index_Boulder = [float(x) if x != '?' else 0 for x in K_index_Boulder]
     K_index_Planetary = [float(x) if x != '?' else 0 for x in K_index_Planetary.split()]
     # print(K_index_Boulder)
-    if dailies_E[2] == '???':
-        d_10cm = 0
+    try:
+     float(dailies_E[2])
+    except:
+     d_10cm = 0
     else:
         d_10cm = float(dailies_E[2])
     daily.update({
@@ -164,12 +166,12 @@ def session_boto():
     bucket = s3.Bucket(bucket_name)
     return bucket
 
-def to_boto(bucket, folder, objective, file):
-    key = {'predi' : "predi_data.csv",
+def to_boto(bucket, folder, key, file):
+    nope = {'predi' : "predi_data.csv",
             'historic' : "raw_solar_data.csv"}
     bucket.put_object(
         Body = file,
-        Key = folder+key[objective],
+        Key = folder+key,
         ACL = 'public-read-write'
     )
 

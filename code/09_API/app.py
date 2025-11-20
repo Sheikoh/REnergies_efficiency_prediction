@@ -117,22 +117,19 @@ async def predict(predictionFeatures: dict[str, Union[str, float]]):
     data = pd.DataFrame([predictionFeatures])
 
     # Log model from mlflow 
-    logged_model = 'runs:/5af5104e94fe40d2948ca5471e2e7d72/pipeline_model'
-    # logged_model = "s3://renergies99-mlflow/4/d81138d3368d4c048bafd9c7fefd70d5/artifacts/model"
-    print(logged_model)
-
+    logged_model = 'runs:/c9de1740e84e491ba8c15eafb16a8fa0/pipeline_model'
 
     # # Load model as a PyFuncModel.
     loaded_model = mlflow.pyfunc.load_model(logged_model)
-
-    # If you want to load model persisted locally
-    # loaded_model = joblib.load('model_ibm')
-
     prediction = loaded_model.predict(data)
+    artifact_uri = mlflow.get_run(logged_model).info.artifact_uri
+    errors = mlflow.artifacts.load_dict(artifact_uri + "/error.json")
+    error = get_error()
     print(prediction)
 
     # Format response
-    response = {"prediction": prediction.tolist()[0]}
+    response = {"prediction": prediction.tolist()[0],
+                "error": error}
     hist_df = pd.read_csv('https://renergies99-bucket.s3.eu-west-3.amazonaws.com/public/prediction/predi.csv')
     resp_df = pd.DataFrame(response, index=list(range(len(response))))
     all_predi = pd.concat([resp_df, hist_df])
