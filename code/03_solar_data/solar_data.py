@@ -1,6 +1,6 @@
 import pandas as pd
 from utils import daterange, save_tocsv
-from solar_data_func import extract_date, to_boto, session_boto
+from solar_data_func import extract_date, to_boto, session_boto, to_s3
 from datetime import date, timedelta, datetime
 
 ###Base variables
@@ -20,8 +20,11 @@ for single_date in daterange(start_date, end_date):
     solar_data = pd.concat([solar_data, df_temp])
 
 solar_data = pd.concat([stored_data, solar_data])
+url = "https://renergies99-bucket.s3.eu-west-3.amazonaws.com/public/solar/raw_solar_data.csv"
+to_s3(solar_data)
 #storage of the data in a csv
-bucket = session_boto()
-to_boto(bucket, 'data/solar/', "raw_solar.csv", solar_data)
+# bucket = session_boto()
+# to_boto(bucket, 'data/solar/', "raw_solar.csv", solar_data)
+
 # save_tocsv(solar_data, 'data/solar/raw_solar_data.csv')
 # solar_data.to_csv('data/solar/raw_solar_data.csv')

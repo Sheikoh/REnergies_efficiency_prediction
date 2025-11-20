@@ -219,4 +219,17 @@ def solar_predi_parse(text):
     to_boto(bucket, "public/solar", "predi_data.csv", df.to_csv())
 
     return df
+
+def to_s3(data):
+    load_dotenv()
+
+    API_KEY_S3 = os.environ["AWS_ACCESS_KEY_ID"]
+    API_SECRET_KEY_S3 = os.environ["AWS_SECRET_ACCESS_KEY"]
+
+    data.to_csv("https://renergies99-bucket.s3.eu-west-3.amazonaws.com/public/solar/raw_solar_data.csv",
+                  index=False,
+                  storage_options={
+                      "key": API_KEY_S3,
+                      "secret": API_SECRET_KEY_S3,
+                      })
             
