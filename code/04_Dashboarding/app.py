@@ -77,7 +77,7 @@ def load_data():
 
 def load_api_data(url, data_type):
     logging.info(f"LOAD {data_type}")
-    
+
     max_retries = 3
     wait = 1
 
@@ -101,41 +101,6 @@ def load_api_data(url, data_type):
 
     else:
         logging.error("Failure after {max_retries} retries")
-
-def load_rte():
-    logging.info("LOAD_RTE")
-    max_retries = 3
-    wait = 1
-
-    for _ in range(max_retries):
-
-        try:
-            response = requests.get("https://renergies99-api-renergy.hf.space/load_rte_data")
-            response.raise_for_status()
-
-            logging.info(response.content)
-            break
-
-        except requests.exceptions.HTTPError as e:
-            if response.status_code == 429:
-                retry_after = int(response.headers.get("Retry-After", wait))
-                logging.error(f"Error 429. Wait for {retry_after} seconds...")
-                time.sleep(retry_after)
-                wait *= 2
-            else:
-                raise
-
-    else:
-        logging.error("Failure after {max_retries} retries")
-
-    
-
-def load_openweathermap_forecasts():
-    logging.info("LOAD_OPENWEATHERMAP_FORECASTS")
-    response = requests.get("https://renergies99-api-renergy.hf.space/load_openweathermap_forecasts")
-    response.raise_for_status()
-
-    logging.info(response.content)
 
 def load_predictions_file() -> pd.DataFrame:
     """
@@ -174,10 +139,6 @@ mode = st.sidebar.radio(
 
 # Chargement des données en cache
 df_nat, df_reg = load_data()
-
-#load_rte()
-
-#load_openweathermap_forecasts()
 
 load_api_data("https://renergies99-api-renergy.hf.space/load_rte_data", "RTE")
 load_api_data("https://renergies99-api-renergy.hf.space/load_openweathermap_forecasts", "OPENWEATHERMAP FORECASTS")
