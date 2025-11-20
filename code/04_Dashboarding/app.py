@@ -83,7 +83,7 @@ def load_rte():
 
 def load_openweathermap_forecasts():
     logging.info("LOAD_OPENWEATHERMAP_FORECASTS")
-    response = requests.get("https://renergies99-bucket.s3.eu-west-3.amazonaws.com/public/openweathermap/openweathermap_forecasts.json")
+    response = requests.get("https://renergies99-api-renergy.hf.space/load_openweathermap_forecasts")
     response.raise_for_status()
 
     logging.info(response.content)
