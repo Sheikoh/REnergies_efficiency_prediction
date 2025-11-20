@@ -75,6 +75,7 @@ def load_data():
     return df_nat_prep, df_reg_prep
 
 def load_rte():
+    logging.info("LOAD_RTE")
     response = requests.get("https://renergies99-api-renergy.hf.space/load_rte_data")
     response.raise_for_status()
 
