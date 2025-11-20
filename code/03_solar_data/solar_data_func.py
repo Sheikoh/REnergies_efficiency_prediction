@@ -23,12 +23,12 @@ from dotenv import load_dotenv
 
 # 
 
-def req_solar(base_url, date, case='predi'):
+def req_solar(base_url, date, objective='predi'):
 
-    case_dic = {'predi' : "daypre.txt",
+    objective_dic = {'predi' : "daypre.txt",
                 'historic' : "SGAS.txt"}
 
-    file= f'{date.year}'+f'{date.month:02}'+f'{date.day:02}'+case_dic[case]
+    file= f'{date.year}'+f'{date.month:02}'+f'{date.day:02}'+objective_dic[objective]
     url = f"{base_url}/{date.year}/{f'{date.month:02}'}/{file}"
     daily = {"date" : date}
     print(url)
@@ -103,8 +103,12 @@ def coll_data_E(text_E, daily):
     K_index_Boulder = [float(x) if x != '?' else 0 for x in K_index_Boulder]
     K_index_Planetary = [float(x) if x != '?' else 0 for x in K_index_Planetary.split()]
     # print(K_index_Boulder)
+    if dailies_E[2] == '???':
+        d_10cm = 0
+    else:
+        d_10cm = float(dailies_E[2])
     daily.update({
-        "10cm" : dailies_E[2],
+        "10cm" : d_10cm,
         "SSN" : dailies_E[4],
         "Afr" : dailies_E[6].split('/')[0],
         "Ap" : dailies_E[6].split('/')[1],
@@ -118,8 +122,8 @@ def coll_data_E(text_E, daily):
     return daily
 
 ### The complete workflow for a single file, returning a one-line dataframe.
-def extract_date(base_url, single_date, case):
-    data, daily = req_solar(base_url, single_date, case=case)
+def extract_date(base_url, single_date, objective):
+    data, daily = req_solar(base_url, single_date, objective=objective)
     if len(data) >1:
         text_A, text_B, text_C, _, text_E, text_F = split_response(data) #The section D of the text is not used because obsolete
         daily = coll_data_A(text_A, daily)
@@ -160,10 +164,12 @@ def session_boto():
     bucket = s3.Bucket(bucket_name)
     return bucket
 
-def to_boto(bucket, folder, key, file):
+def to_boto(bucket, folder, objective, file):
+    key = {'predi' : "predi_data.csv",
+            'historic' : "raw_solar_data.csv"}
     bucket.put_object(
         Body = file,
-        Key = folder+key,
+        Key = folder+key[objective],
         ACL = 'public-read-write'
     )
 
@@ -215,23 +221,12 @@ def solar_predi_parse(text):
                     df[info[1]] = data
 
     df = df.rename(columns=col_name)
+    return df
+
+def fetch_predi(base_url, day, objective):
+    data, _ = req_solar(base_url, day, objective)
+    df = solar_predi_parse(data) 
     bucket = session_boto()
     to_boto(bucket, "public/solar", "predi_data.csv", df.to_csv())
 
     return df
-
-def to_s3(data):
-    load_dotenv()
-
-    API_KEY_S3 = os.environ["AWS_ACCESS_KEY_ID"]
-    API_SECRET_KEY_S3 = os.environ["AWS_SECRET_ACCESS_KEY"]
-    print(API_KEY_S3)
-    print(API_SECRET_KEY_S3)
-
-    data.to_csv("https://renergies99-bucket.s3.eu-west-3.amazonaws.com/public/prod/raw_solar_data.csv",
-                  index=False,
-                  storage_options={
-                      "key": API_KEY_S3,
-                      "secret": API_SECRET_KEY_S3,
-                      })
-            
