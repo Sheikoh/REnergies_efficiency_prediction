@@ -5,21 +5,44 @@ import pandas as pd
 from datetime import datetime
 from dotenv import load_dotenv
 import os
+import boto3
 
+load_dotenv()
 
 now = datetime.now().strftime("%Y-%m-%d")
 path = "unzip"
 last_download_filename = "rte_last_download"
 
+API_KEY_S3 = os.environ["AWS_ACCESS_KEY_ID"]
+API_SECRET_KEY_S3 = os.environ["AWS_SECRET_ACCESS_KEY"]
+bucket = "renergies99-bucket"
+
+def s3_cred():
+    load_dotenv()
+
+    return boto3.client(
+        "s3",
+        aws_access_key_id=API_KEY_S3,
+        aws_secret_access_key=API_SECRET_KEY_S3,
+        region_name="eu-west-3"
+    )
+
+s3 = s3_cred()
+
+def get_rte_last_download():
+    try:
+        key = f"public/prod/{last_download_filename}"
+
+        obj = s3.get_object(Bucket=bucket, Key=key)
+        ligne = obj["Body"].read().decode("utf-8")
+
+    except:
+        return "Cannot get rte last download data"
+    
+    return ligne
 
 def is_rte_data_already_downloaded():
-    try:
-        with open(f"{path}/{last_download_filename}", "r", encoding="utf-8") as f:
-            ligne = f.readline()
-    except:
-        return False
-
-    return now == ligne
+    return now == get_rte_last_download()
 
 
 def fill_2024_columns(df):
@@ -107,11 +130,6 @@ def en_cours_rte_data():
 
 
 def rte_df_to_csv(df):
-    load_dotenv()
-
-    API_KEY_S3 = os.environ["AWS_ACCESS_KEY_ID"]
-    API_SECRET_KEY_S3 = os.environ["AWS_SECRET_ACCESS_KEY"]
-
     final_csv_filename = "eCO2mix_RTE_Auvergne-Rhone-Alpes.csv"
     
     df = df[~df["Heures"].str.contains(":15|:45")]
@@ -133,13 +151,22 @@ def rte_df_to_csv(df):
         },
     )
 
-
+    """
     try:
         with open(f"{path}/{last_download_filename}", "w", encoding="utf-8") as f:
             f.write(now)
 
     except:
         print(f"Cannot write to {path}/{final_csv_filename}")
+    """
+    key = f"public/prod/{last_download_filename}"
+
+    s3.put_object(
+        Bucket=bucket,
+        Key=key,
+        Body=now.encode("utf-8")
+    )
+
 
 """
 if __name__ == "__main__":
