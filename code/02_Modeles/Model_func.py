@@ -348,3 +348,11 @@ def error_stat(x_test, y_test, pipeline):
     table['max'] = table['max'].astype(float)
 
     return table
+
+def log_json_artifact(data, filename):
+    """
+    Save an object (dict, list) in a json file
+    """
+    with open(filename, "w") as f:
+        json.dump(data, f)
+    mlflow.log_artifact(filename)
