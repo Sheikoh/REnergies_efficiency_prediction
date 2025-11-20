@@ -188,6 +188,10 @@ async def load_rte_data():
     
     return "RTE data is already downloaded today"
 
+@app.get("/rte_last_download", tags=["RTE"])
+async def rte_last_download():
+    return rte.get_rte_last_download()
+
 @app.get("/load_openweathermap_forecasts", tags=["Openweathermap"])
 async def load_openweathermap_forecasts():
     pass

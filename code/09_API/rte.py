@@ -29,20 +29,20 @@ def s3_cred():
 
 s3 = s3_cred()
 
-def is_rte_data_already_downloaded():
+def get_rte_last_download():
     try:
-        #with open(f"{path}/{last_download_filename}", "r", encoding="utf-8") as f:
-        #    ligne = f.readline()
-        
         key = f"public/prod/{last_download_filename}"
 
         obj = s3.get_object(Bucket=bucket, Key=key)
         ligne = obj["Body"].read().decode("utf-8")
 
     except:
-        return False
+        return "Cannot get rte last download data"
+    
+    return ligne
 
-    return now == ligne
+def is_rte_data_already_downloaded():
+    return now == get_rte_last_download()
 
 
 def fill_2024_columns(df):
