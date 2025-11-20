@@ -322,3 +322,29 @@ def model_training(model, x_train, x_test, y_train, y_test):
 
     print('model_score_train: ', model.score(x_train,y_train))
     print('model_score_test: ', model.score(x_test,y_test))
+    
+def error_stat(x_test, y_test, pipeline):
+    """
+    Returns a dataframe with target-value intervals and, for each interval,
+    the average prediction and its associated standard deviation. 
+    It also returns the minimum and maximum bounds of the intervals.
+    
+    Takes as input a validation set x_test, y_test, and a pipeline model.
+    """
+    df = pd.DataFrame({
+        'y_test': y_test,
+        'y_pred': pipeline.predict(x_test)
+    })
+
+    df['quantile_group'] = pd.qcut(df['y_test'], q=10, duplicates='drop')
+
+    # Grouper et calculer moyenne et écart-type
+    table = df.groupby('quantile_group')['y_pred'].agg(['mean', 'std']).reset_index()
+
+    # Ajouter les valeurs min et max de chaque intervalle
+    table['min'] = table['quantile_group'].apply(lambda x: x.left)
+    table['max'] = table['quantile_group'].apply(lambda x: x.right)
+    table['min'] = table['min'].astype(float)
+    table['max'] = table['max'].astype(float)
+
+    return table
