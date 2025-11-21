@@ -128,6 +128,20 @@ def load_predictions_file() -> pd.DataFrame:
     df_pred["type"] = "Prédiction"
     return df_pred[["Date", COL_TCH, "type"]]
 
+def call_predict():
+    urls = [
+        "https://renergies99-bucket.s3.eu-west-3.amazonaws.com/public/solar/predi_data.csv",
+        "https://renergies99-bucket.s3.eu-west-3.amazonaws.com/public/openweathermap/openweathermap_forecasts.csv"
+    ]
+
+    payload = {"urls": urls}
+
+    data = requests.post("https://renergies99-api-renergy.hf.space/prep_data", json=payload)
+    json_data = data.json()
+    print(json_data)
+
+    response = requests.post("https://renergies99-api-renergy.hf.space/predict", json=json_data)
+    
 
 # Principes de navigation
 st.sidebar.title("Navigation")
@@ -142,7 +156,9 @@ df_nat, df_reg = load_data()
 
 load_api_data("https://renergies99-api-renergy.hf.space/load_rte_data", "RTE")
 load_api_data("https://renergies99-api-renergy.hf.space/load_openweathermap_forecasts", "OPENWEATHERMAP FORECASTS")
+load_api_data("https://renergies99-api-renergy.hf.space/load_solar_data", "SOLAR FORECAST")
 
+call_predict()
 
 # MODE 1 : DESCRIPTIF
 if mode == "Descriptif":
@@ -474,23 +490,23 @@ elif mode == "Prédiction":
     # 7 derniers jours (au sens des 7 dernières dates disponibles)
     df_hist_7 = df_hist_all.tail(7)
 
-    # 2) PREDICTIONS : 7 prochains jours
+    # 2) PREDICTIONS : 3 prochains jours
     df_pred_all = load_predictions_file()
 
     if df_pred_all.empty:
-        df_pred_7 = pd.DataFrame()
+        df_pred_3 = pd.DataFrame()
         st.info("Aucune prédiction valide chargée (vérifier le fichier de prédiction).")
     else:
         df_pred_all = df_pred_all.sort_values("Date")
         # 7 premiers jours de prédiction
-        df_pred_7 = df_pred_all.head(7)
+        df_pred_3 = df_pred_all.head(3)
 
         # Raccord historique / prédiction
         # Ajoute comme premier point de la série "Prédiction"
         # Puis dernier point historique
         last_hist_date = df_hist_7["Date"].max()
         last_hist_value = df_hist_7[COL_TCH].iloc[-1]
-        first_pred_date = df_pred_7["Date"].min()
+        first_pred_date = df_pred_3["Date"].min()
 
         if first_pred_date > last_hist_date:
             raccord = pd.DataFrame({
@@ -498,11 +514,11 @@ elif mode == "Prédiction":
                 COL_TCH: [last_hist_value],
                 "type": ["Prédiction"]
             })
-            df_pred_7 = pd.concat([raccord, df_pred_7], ignore_index=True)
+            df_pred_3 = pd.concat([raccord, df_pred_3], ignore_index=True)
 
     # 3) DATAFRAME FINAL POUR LE GRAPHIQUE
-    if not df_pred_7.empty:
-        df_plot = pd.concat([df_hist_7, df_pred_7], ignore_index=True)
+    if not df_pred_3.empty:
+        df_plot = pd.concat([df_hist_7, df_pred_3], ignore_index=True)
     else:
         df_plot = df_hist_7.copy()
 
@@ -522,7 +538,7 @@ elif mode == "Prédiction":
 
     st.plotly_chart(fig, use_container_width=True)
 
-    # 5) Récap en dessous
+    # 5) Récap en dur des intervalles de dates historique et prédiction
     col1, col2 = st.columns(2)
     with col1:
         st.write("**Historique (7 jours)**")
@@ -531,11 +547,11 @@ elif mode == "Prédiction":
             f"au {df_hist_7['Date'].max().date()}"
         )
     with col2:
-        if not df_pred_7.empty:
+        if not df_pred_3.empty:
             # On ignore éventuellement le point de raccord s'il tombe le même jour
-            pred_start = df_pred_7["Date"].min().date()
-            pred_end = df_pred_7["Date"].max().date()
-            st.write("**Prédiction (7 jours)**")
+            pred_start = df_pred_3["Date"].min().date()
+            pred_end = df_pred_3["Date"].max().date()
+            st.write("**Prédiction (3 jours)**")
             st.write(f"du {pred_start} au {pred_end}")
         else:
             st.write("**Prédiction** : aucune donnée affichée")

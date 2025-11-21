@@ -6,11 +6,13 @@ from typing import Literal, List, Union
 from fastapi import FastAPI, File, UploadFile
 import joblib
 import app_func as af
+import Model_func as mf
 import boto3
 from dotenv import load_dotenv
 import os
 import rte
 import openweathermap as owm
+import solar as sol
 from datetime import date, timedelta, datetime
 # data = pd.read_excel("ibm_hr_attrition.xlsx", index_col=0)
 # model = joblib.load("model_ibm")
@@ -89,6 +91,9 @@ class BlogArticles(BaseModel):
     content: str
     author: str = "Anonymous Author"
 
+class Item(BaseModel):
+    name: list[str]
+
 #class PredictionFeatures(BaseModel):
 #    YearsExperience: float
 
@@ -101,6 +106,19 @@ async def index():
     """
     message = "Hello world! This `/` is the most simple and default endpoint. If you want to learn more, check out documentation of the api at `/docs`"
     return message
+
+@app.post("/prep_data", tags=["Machine Learning"])
+async def data_prep(urls: dict):
+    """
+    Preparation of the data for the prediction.
+    In the list of urls, the first url must be the solar data, the second the weather data
+    """
+
+    solar_df = mf.data_coll_solar(urls["urls"][0])
+    weather_df = mf.data_collection_weather(urls["urls"][1])
+    data_df = mf.merge_weather_solar_data(weather_df, solar_df)
+    
+    return data_df.to_json(orient="index")
 
 
 @app.post("/predict", tags=["Machine Learning"])
@@ -116,21 +134,22 @@ async def predict(predictionFeatures: dict):
 
     print(predictionFeatures)
     # Read data 
-    #data = pd.read_json(predictionFeatures, orient='index')
-    data = pd.DataFrame([predictionFeatures])
+    data = pd.read_json(predictionFeatures, orient='index')
+    #data = pd.DataFrame([predictionFeatures])
 
     # Log model from mlflow 
-    logged_model = 'runs:/74ad7196947346b38400fe6ebbb3cea6/pipeline_model'
-    logged_model = 'runs:/9c9501dd806242abaf63d6daf0fd2ac0/pipeline_model'
+    run = 'dd977154007f474993f35e5c5d8361b9'
+    logged_model = f'runs:/{run}/model'
+    # logged_model = 'runs:/9c9501dd806242abaf63d6daf0fd2ac0/pipeline_model'
     
     
     # # Load model as a PyFuncModel.
     loaded_model = mlflow.pyfunc.load_model(logged_model)
     print('loaded model')
     prediction = loaded_model.predict(data)
-    #artifact_uri = mlflow.get_run(logged_model).info.artifact_uri
-    #errors = mlflow.artifacts.load_dict("s3://renergies99-mlflow/5/74ad7196947346b38400fe6ebbb3cea6/artifacts/pipeline_model" + "/error.json")
-    errors = mlflow.artifacts.load_dict('s3://renergies99-mlflow/5/9c9501dd806242abaf63d6daf0fd2ac0/artifacts/pipeline_model/error.json')
+    artifact_uri = mlflow.get_run(run).info.artifact_uri
+    errors = mlflow.artifacts.load_dict(artifact_uri + "/error.json")
+    # errors = mlflow.artifacts.load_dict('s3://renergies99-mlflow/5/9c9501dd806242abaf63d6daf0fd2ac0/artifacts/pipeline_model/error.json')
     errors_df = pd.DataFrame(errors)
     error_list = []
     for predi in prediction.tolist():
@@ -138,13 +157,18 @@ async def predict(predictionFeatures: dict):
     print(prediction)
 
     # Format response
-    response = {"time": date(2025, 3, 2),
-                "prediction": prediction.tolist()[0],
-                "error": error_list}
-    hist_df = pd.read_csv('https://renergies99-bucket.s3.eu-west-3.amazonaws.com/public/prediction/predi.csv')
+    response = {"Date": date(2025, 3, 2),
+                "TCH_solaire_pred": prediction.tolist()[0],
+                "Error": error_list}
     resp_df = pd.DataFrame(response, index=list(range(len(response))))
-    all_predi = pd.concat([resp_df, hist_df])
-    resp_toboto = all_predi.to_csv()
+#    try:
+#        hist_df = pd.read_csv('https://renergies99-bucket.s3.eu-west-3.amazonaws.com/public/prediction/predi.csv')
+#    except: 
+#        all_predi = resp_df   
+#    else:
+#        all_predi = pd.concat([resp_df, hist_df])
+
+    resp_toboto = resp_df.to_csv()
     af.to_boto(bucket, resp_toboto)
     return response
 
@@ -229,3 +253,40 @@ async def openweathermap_last_download():
     Get the date of the last downloaded version of Openweathermap data
     """
     return owm.get_openweathermap_last_download()
+
+@app.get("/load_solar_data", tags=["Solar"])
+async def load_solar_data():
+    """
+    Load Solar data
+    """
+    if not sol.is_solar_data_already_downloaded():
+        try:
+            sol.api_fetch_predi()
+            
+            return "Solar data successfully uploaded"
+
+        except Exception as e:
+            return e
+
+@app.get("/solar_last_download", tags=["Solar"])
+async def solar_last_download():
+    """
+    Get the date of the last downloaded version of Solar data
+    """
+    return sol.get_solar_last_download()
+
+
+
+"""
+urls = [
+        "https://renergies99-bucket.s3.eu-west-3.amazonaws.com/public/solar/predi_data.csv",
+        "https://renergies99-bucket.s3.eu-west-3.amazonaws.com/public/openweathermap/openweathermap_forecasts.csv"
+    ]
+
+payload = {"urls": urls}
+
+data = data_prep(payload)
+print(data)
+predictzz(data)
+
+"""
