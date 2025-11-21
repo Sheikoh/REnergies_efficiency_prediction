@@ -9,7 +9,6 @@ import boto3
 
 load_dotenv()
 
-now = datetime.now().strftime("%Y-%m-%d")
 path = "unzip"
 last_download_filename = "rte_last_download"
 
@@ -29,6 +28,9 @@ def s3_cred():
 
 s3 = s3_cred()
 
+def getNow():
+    return datetime.now().strftime("%Y-%m-%d")
+
 def get_rte_last_download():
     try:
         key = f"public/prod/{last_download_filename}"
@@ -42,7 +44,7 @@ def get_rte_last_download():
     return ligne
 
 def is_rte_data_already_downloaded():
-    return now == get_rte_last_download()
+    return getNow() == get_rte_last_download()
 
 
 def fill_2024_columns(df):
@@ -124,7 +126,7 @@ def en_cours_rte_data():
     # the file is upposed to be encoded in ISO-8859-1
     df = pd.read_csv(f"{path}/eCO2mix_RTE_Auvergne-Rhone-Alpes_En-cours-TR.xls", encoding="ISO-8859-1", sep="\t")
     df = df.iloc[:-1, :-1] #remove last line and last column
-    df = df[df["Date"] != now]
+    df = df[df["Date"] != getNow()]
     
     return df
 
@@ -156,7 +158,7 @@ def rte_df_to_csv(df):
     s3.put_object(
         Bucket=bucket,
         Key=key,
-        Body=now.encode("utf-8")
+        Body=getNow().encode("utf-8")
     )
 
 
