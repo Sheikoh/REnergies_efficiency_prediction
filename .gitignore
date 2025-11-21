@@ -2,3 +2,4 @@ playground.ipynb
 .env
 .gitrepo
 test.json
+__pycache__/

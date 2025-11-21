@@ -4,8 +4,12 @@ import pandas as pd
 import plotly.express as px
 import seaborn as sns
 import matplotlib.pyplot as plt
+import json
 
 from sklearn.model_selection import train_test_split
+from sklearn.pipeline import Pipeline
+from sklearn.compose import ColumnTransformer
+from sklearn.preprocessing import FunctionTransformer
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LinearRegression
 from dotenv import load_dotenv
@@ -260,9 +264,76 @@ def data_prep_for_ML(df, features):
 
     return prep_data
 
+def preprocessing_and_pipeline(X, estimator=LinearRegression()):
+    """
+    Prepare the preprocessing and model estimation pipeline. The pipeline will need to be fitted using .fit
+    Returns {
+        "numeric_cols": numeric_cols,
+        "object_cols": object_cols,
+        "integer_cols": integer_cols,
+        "numeric_non_int_cols": numeric_non_int_cols,
+        "preprocessor": preprocessor,
+        "pipeline": pipeline
+    }
+    """
+    # ---- identify columns
+    numeric_cols = X.select_dtypes(include='number').columns.tolist()
+    object_cols = X.select_dtypes(exclude='number').columns.tolist()
+    integer_cols = X.select_dtypes(include='int').columns.tolist()
+    numeric_non_int_cols = [col for col in numeric_cols if col not in integer_cols]
 
-def preprocess(data):
-    return
+    # ---- pipelines
+    integer_pipeline = Pipeline([
+        ('to_float', FunctionTransformer(lambda X: X.astype(float), validate=False)),
+        ('scaler', StandardScaler())
+    ])
+    
+    preprocessor = ColumnTransformer([
+        ('int', integer_pipeline, integer_cols),
+        ('num', StandardScaler(), numeric_non_int_cols),
+        #('obj', 'passthrough', object_cols)
+    ])
+
+    pipeline = Pipeline([
+        ('preprocessor', preprocessor),
+        ('estimator', estimator)
+    ])
+
+    return {
+        "numeric_cols": numeric_cols,
+        "object_cols": object_cols,
+        "integer_cols": integer_cols,
+        "numeric_non_int_cols": numeric_non_int_cols,
+        "preprocessor": preprocessor,
+        "pipeline": pipeline
+    }
+
+
+def custom_get_feature_names(result, artifact_name=None):
+    """
+    Extract feature names from the preprocessing.
+    Optionally logs the list as an MLflow artifact.
+    Input is the result of the function preprocessing_and_pipeline
+    Return the feature names
+    """
+    preprocessor = result["preprocessor"]
+    numeric_non_int_cols = result["numeric_non_int_cols"]
+    #object_cols = result["object_cols"]
+
+    feature_names = list(result["integer_cols"])
+    if "num" in preprocessor.named_transformers_:
+        num_transformer = preprocessor.named_transformers_["num"]
+        numeric_non_int_cols = result["numeric_non_int_cols"]
+        num_feature_names = num_transformer.get_feature_names_out(numeric_non_int_cols)
+        feature_names.extend(num_feature_names)
+    #get_feature_names_out for object_col
+
+    #Optional MLflow artifact logging
+    if artifact_name is not None:
+        log_json_artifact(feature_names, artifact_name)
+
+    return feature_names
+
 
 
 def data_prep_and_split(merged_data):
