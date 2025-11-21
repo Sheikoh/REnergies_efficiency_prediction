@@ -208,7 +208,7 @@ def merge_weather_solar_landsat_data(weather_df, solar_df, landsat_df):
 
 #------------- DATA PREP --------------------------------------
 # Data prep = data collect + merge the 3 datasets
-def data_prep(weather_data_path, solar_data_path, landsat_data_path):
+def data_prep3(weather_data_path, solar_data_path, landsat_data_path):
     """
     Collect data from the 3 sources openweather, solar and landsat
     Returns a dataframe with :
@@ -223,6 +223,13 @@ def data_prep(weather_data_path, solar_data_path, landsat_data_path):
     merged_data = merge_weather_solar_landsat_data(
         collected_weather_data, collected_solar_data, collected_landsat_data)
     return merged_data
+
+def data_prep(urls):
+
+    solar_df = data_coll_solar(urls[0])
+    weather_df = data_collection_weather(urls[1])
+    data_df = merge_weather_solar_data(weather_df, solar_df)
+    return data_df.to_json()
 
 #--------------ADD TARGET---------------------------------------
 def add_target(df_data, df_target, target_columns_to_use=['Time', 'tch_solaire_(%)']):
