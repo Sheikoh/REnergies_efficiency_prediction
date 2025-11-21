@@ -282,15 +282,17 @@ def preprocessing_and_pipeline(X, estimator=LinearRegression()):
     integer_cols = X.select_dtypes(include='int').columns.tolist()
     numeric_non_int_cols = [col for col in numeric_cols if col not in integer_cols]
 
+    X[numeric_cols] = X[numeric_cols].astype(float)
+
     # ---- pipelines
-    integer_pipeline = Pipeline([
-        ('to_float', FunctionTransformer(lambda X: X.astype(float), validate=False)),
-        ('scaler', StandardScaler())
-    ])
+    # integer_pipeline = Pipeline([
+    #     ('to_float', FunctionTransformer(lambda X: X.astype(float), validate=False)),
+    #     ('scaler', StandardScaler())
+    # ])
     
     preprocessor = ColumnTransformer([
-        ('int', integer_pipeline, integer_cols),
-        ('num', StandardScaler(), numeric_non_int_cols),
+        #('int', integer_pipeline, integer_cols),
+        ('num', StandardScaler(), numeric_cols),
         #('obj', 'passthrough', object_cols)
     ])
 
@@ -311,6 +313,7 @@ def preprocessing_and_pipeline(X, estimator=LinearRegression()):
 
 def custom_get_feature_names(result, artifact_name=None):
     """
+    NON OPERATIONAL NOW !!!
     Extract feature names from the preprocessing.
     Optionally logs the list as an MLflow artifact.
     Input is the result of the function preprocessing_and_pipeline
