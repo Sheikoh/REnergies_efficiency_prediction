@@ -125,9 +125,7 @@ def get_city_data(cities=cities, filename="cities.json"):
     
     if obj:
         logging.info(f"Use of {filename}")
-        #with open(filename, "r", encoding="utf-8") as f:
-        #    data = json.load(f)
-
+        
         contenu = obj["Body"].read()
         data = json.loads(contenu)
 
@@ -230,7 +228,7 @@ def load_openweathermap_data(cities_coord, file_basename="openweathermap_forecas
 
     df = openweather_data_json_to_dataframe(cities_coord)
     
-    filename = f"{file_basename}.json"
+    filename = f"{file_basename}.csv"
 
     try:
         logging.info(f"write data to : {filename}")

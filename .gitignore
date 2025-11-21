@@ -2,3 +2,5 @@ playground.ipynb
 .env
 .gitrepo
 test.json
+__pycache__/
+code/02_Modeles/mlruns/
