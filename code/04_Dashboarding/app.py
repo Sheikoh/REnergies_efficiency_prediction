@@ -128,6 +128,15 @@ def load_predictions_file() -> pd.DataFrame:
     df_pred["type"] = "Prédiction"
     return df_pred[["Date", COL_TCH, "type"]]
 
+def call_predict():
+    data = requests.post("https://renergies99-api-renergy.hf.space/prep_data", json=[
+        'https://renergies99-bucket.s3.eu-west-3.amazonaws.com/public/solar/predi_data.csv',
+        'https://renergies99-bucket.s3.eu-west-3.amazonaws.com/public/openweathermap/openweathermap_forecasts.csv'
+        ])
+    json_data = data.content.to_json()
+
+    response = requests.post("https://renergies99-api-renergy.hf.space/predict", json=json_data)
+    
 
 # Principes de navigation
 st.sidebar.title("Navigation")
@@ -142,8 +151,9 @@ df_nat, df_reg = load_data()
 
 load_api_data("https://renergies99-api-renergy.hf.space/load_rte_data", "RTE")
 load_api_data("https://renergies99-api-renergy.hf.space/load_openweathermap_forecasts", "OPENWEATHERMAP FORECASTS")
-load_api_data("", "SOLAR FORECAST")
+load_api_data("https://renergies99-api-renergy.hf.space/load_solar_data", "SOLAR FORECAST")
 
+call_predict()
 
 # MODE 1 : DESCRIPTIF
 if mode == "Descriptif":
