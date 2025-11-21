@@ -133,7 +133,7 @@ async def predict(predictionFeatures: dict):
 
     # Log model from mlflow 
     run = 'dd977154007f474993f35e5c5d8361b9'
-    logged_model = f'runs:/{run}/pipeline_model'
+    logged_model = f'runs:/{run}/model'
     # logged_model = 'runs:/9c9501dd806242abaf63d6daf0fd2ac0/pipeline_model'
     
     
@@ -151,18 +151,18 @@ async def predict(predictionFeatures: dict):
     print(prediction)
 
     # Format response
-    response = {"time": date(2025, 3, 2),
-                "prediction": prediction.tolist()[0],
-                "error": error_list}
+    response = {"Date": date(2025, 3, 2),
+                "TCH_solaire_pred": prediction.tolist()[0],
+                "Error": error_list}
     resp_df = pd.DataFrame(response, index=list(range(len(response))))
-    try:
-        hist_df = pd.read_csv('https://renergies99-bucket.s3.eu-west-3.amazonaws.com/public/prediction/predi.csv')
-    except: 
-        all_predi = resp_df    
-    else:
-        all_predi = pd.concat([resp_df, hist_df])
-        
-    resp_toboto = all_predi.to_csv()
+#    try:
+#        hist_df = pd.read_csv('https://renergies99-bucket.s3.eu-west-3.amazonaws.com/public/prediction/predi.csv')
+#    except: 
+#        all_predi = resp_df   
+#    else:
+#        all_predi = pd.concat([resp_df, hist_df])
+
+    resp_toboto = resp_df.to_csv()
     af.to_boto(bucket, resp_toboto)
     return response
 
