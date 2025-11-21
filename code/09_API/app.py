@@ -91,6 +91,9 @@ class BlogArticles(BaseModel):
     content: str
     author: str = "Anonymous Author"
 
+class Item(BaseModel):
+    name: list[str]
+
 #class PredictionFeatures(BaseModel):
 #    YearsExperience: float
 
@@ -105,7 +108,7 @@ async def index():
     return message
 
 @app.post("/prep_data", tags=["Machine Learning"])
-async def data_prep(urls: list):
+async def data_prep(urls: Item):
     """
     Preparation of the data for the prediction.
     In the list of urls, the first url must be the solar data, the second the weather data

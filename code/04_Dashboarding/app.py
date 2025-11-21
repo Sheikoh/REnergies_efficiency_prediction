@@ -129,9 +129,10 @@ def load_predictions_file() -> pd.DataFrame:
     return df_pred[["Date", COL_TCH, "type"]]
 
 def call_predict():
-    data = requests.post("https://renergies99-api-renergy.hf.space/prep_data", json={[
-        'https://renergies99-bucket.s3.eu-west-3.amazonaws.com/public/solar/predi_data.csv',
-        'https://renergies99-bucket.s3.eu-west-3.amazonaws.com/public/openweathermap/openweathermap_forecasts.csv'
+    data = requests.post("https://renergies99-api-renergy.hf.space/prep_data", json={
+        "name": [
+            'https://renergies99-bucket.s3.eu-west-3.amazonaws.com/public/solar/predi_data.csv',
+            'https://renergies99-bucket.s3.eu-west-3.amazonaws.com/public/openweathermap/openweathermap_forecasts.csv'
         ]})
     json_data = data.content.to_json()
 
