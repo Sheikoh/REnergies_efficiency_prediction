@@ -137,7 +137,7 @@ def call_predict():
     payload = {"urls": urls}
 
     data = requests.post("https://renergies99-api-renergy.hf.space/prep_data", json=payload)
-    json_data = data.content
+    json_data = data.json()
     print(json_data)
 
     response = requests.post("https://renergies99-api-renergy.hf.space/predict", json=json_data)
