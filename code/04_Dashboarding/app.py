@@ -138,10 +138,10 @@ def call_predict():
 
     data = requests.post("https://renergies99-api-renergy.hf.space/prep_data", json=payload)
     json_data = data.json()
-    print(json_data)
+    print("json_data", json_data)
 
     response = requests.post("https://renergies99-api-renergy.hf.space/predict", json=json_data)
-    print(response.content)
+    print("zzzzzzzzzzzzzzz", response.content)
     
 
 # Principes de navigation
