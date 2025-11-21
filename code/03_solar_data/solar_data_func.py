@@ -210,11 +210,14 @@ def solar_predi_parse(text):
             info = test_split[i].split(':')
             if i == 0:
                 ind = get_date(info)
+                print(ind)
                 # col.append(info[3])
                 data = get_data(info[4:])
                 df = pd.DataFrame(data, columns=[info[3]], index=ind)
+                df['date'] = ind
+                print(df)
+                # df.index.set_names()
             else:
-                # col.append(info[1])
                 print(info)
                 if info[1] not in ['Polar_cap', 'Reg_Prob']:
                     
@@ -229,6 +232,6 @@ def fetch_predi(base_url, day, objective):
     data, _ = req_solar(base_url, day, objective)
     df = solar_predi_parse(data) 
     bucket = session_boto()
-    to_boto(bucket, "public/solar", "predi_data.csv", df.to_csv())
+    to_boto(bucket, "public/solar/", "predi_data.csv", df.to_csv())
 
     return df

@@ -11,6 +11,7 @@ from dotenv import load_dotenv
 import os
 import rte
 import openweathermap as owm
+from datetime import date, timedelta, datetime
 # data = pd.read_excel("ibm_hr_attrition.xlsx", index_col=0)
 # model = joblib.load("model_ibm")
 
@@ -88,8 +89,8 @@ class BlogArticles(BaseModel):
     content: str
     author: str = "Anonymous Author"
 
-class PredictionFeatures(BaseModel):
-    YearsExperience: float
+#class PredictionFeatures(BaseModel):
+#    YearsExperience: float
 
 
 
@@ -103,7 +104,7 @@ async def index():
 
 
 @app.post("/predict", tags=["Machine Learning"])
-async def predict(predictionFeatures: dict[str, Union[str, float]]):
+async def predict(predictionFeatures: dict):
     """
     Prediction of the Renewable Energies based on the input data 
     """
@@ -115,22 +116,31 @@ async def predict(predictionFeatures: dict[str, Union[str, float]]):
 
     print(predictionFeatures)
     # Read data 
+    #data = pd.read_json(predictionFeatures, orient='index')
     data = pd.DataFrame([predictionFeatures])
 
     # Log model from mlflow 
-    logged_model = 'runs:/c9de1740e84e491ba8c15eafb16a8fa0/pipeline_model'
-
+    logged_model = 'runs:/74ad7196947346b38400fe6ebbb3cea6/pipeline_model'
+    logged_model = 'runs:/9c9501dd806242abaf63d6daf0fd2ac0/pipeline_model'
+    
+    
     # # Load model as a PyFuncModel.
     loaded_model = mlflow.pyfunc.load_model(logged_model)
+    print('loaded model')
     prediction = loaded_model.predict(data)
-    artifact_uri = mlflow.get_run(logged_model).info.artifact_uri
-    errors = mlflow.artifacts.load_dict(artifact_uri + "/error.json")
-    error = get_error()
+    #artifact_uri = mlflow.get_run(logged_model).info.artifact_uri
+    #errors = mlflow.artifacts.load_dict("s3://renergies99-mlflow/5/74ad7196947346b38400fe6ebbb3cea6/artifacts/pipeline_model" + "/error.json")
+    errors = mlflow.artifacts.load_dict('s3://renergies99-mlflow/5/9c9501dd806242abaf63d6daf0fd2ac0/artifacts/pipeline_model/error.json')
+    errors_df = pd.DataFrame(errors)
+    error_list = []
+    for predi in prediction.tolist():
+        error_list.append(af.get_std(predi, errors_df))
     print(prediction)
 
     # Format response
-    response = {"prediction": prediction.tolist()[0],
-                "error": error}
+    response = {"time": date(2025, 3, 2),
+                "prediction": prediction.tolist()[0],
+                "error": error_list}
     hist_df = pd.read_csv('https://renergies99-bucket.s3.eu-west-3.amazonaws.com/public/prediction/predi.csv')
     resp_df = pd.DataFrame(response, index=list(range(len(response))))
     all_predi = pd.concat([resp_df, hist_df])
@@ -152,7 +162,7 @@ async def predict(file: UploadFile= File(...)):
     # data_employee = pd.DataFrame([prediction_data])
 
     # Log model from mlflow 
-    logged_model = 'runs:/5af5104e94fe40d2948ca5471e2e7d72/pipeline_model'
+    logged_model = 'runs:/51febeee1eb74612b4492dd0e4c8169e/pipeline_model'
 
     # # Load model as a PyFuncModel.
     # loaded_model = mlflow.pyfunc.load_model(logged_model)
