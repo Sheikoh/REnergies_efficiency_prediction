@@ -142,6 +142,7 @@ df_nat, df_reg = load_data()
 
 load_api_data("https://renergies99-api-renergy.hf.space/load_rte_data", "RTE")
 load_api_data("https://renergies99-api-renergy.hf.space/load_openweathermap_forecasts", "OPENWEATHERMAP FORECASTS")
+load_api_data("", "SOLAR FORECAST")
 
 
 # MODE 1 : DESCRIPTIF

@@ -154,9 +154,14 @@ async def predict(predictionFeatures: dict):
     response = {"time": date(2025, 3, 2),
                 "prediction": prediction.tolist()[0],
                 "error": error_list}
-    hist_df = pd.read_csv('https://renergies99-bucket.s3.eu-west-3.amazonaws.com/public/prediction/predi.csv')
     resp_df = pd.DataFrame(response, index=list(range(len(response))))
-    all_predi = pd.concat([resp_df, hist_df])
+    try:
+        hist_df = pd.read_csv('https://renergies99-bucket.s3.eu-west-3.amazonaws.com/public/prediction/predi.csv')
+    except: 
+        all_predi = resp_df    
+    else:
+        all_predi = pd.concat([resp_df, hist_df])
+        
     resp_toboto = all_predi.to_csv()
     af.to_boto(bucket, resp_toboto)
     return response

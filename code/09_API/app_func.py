@@ -38,7 +38,7 @@ def session_boto():
 
 def to_boto(bucket, predi):
     s3_prefix = "public/prediction/" 
-    s3_key = "predi.csv"
+    s3_key = "predi_solar_tch.csv"
     bucket.put_object(
         Body = predi,
         Key = s3_prefix+s3_key,
