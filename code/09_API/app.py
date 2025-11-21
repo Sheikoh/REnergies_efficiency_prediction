@@ -113,8 +113,8 @@ async def data_prep(urls: Item):
     Preparation of the data for the prediction.
     In the list of urls, the first url must be the solar data, the second the weather data
     """
-    solar_df = mf.data_coll_solar(urls[0])
-    weather_df = mf.data_collection_weather(urls[1])
+    solar_df = mf.data_coll_solar(urls.name[0])
+    weather_df = mf.data_collection_weather(urls.name[1])
     data_df = mf.merge_weather_solar_data(weather_df, solar_df)
     return data_df
 
