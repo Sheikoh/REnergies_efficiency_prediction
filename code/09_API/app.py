@@ -6,6 +6,7 @@ from typing import Literal, List, Union
 from fastapi import FastAPI, File, UploadFile
 import joblib
 import app_func as af
+import Model_func as mf
 import boto3
 from dotenv import load_dotenv
 import os
@@ -102,6 +103,17 @@ async def index():
     message = "Hello world! This `/` is the most simple and default endpoint. If you want to learn more, check out documentation of the api at `/docs`"
     return message
 
+@app.post("/prep_data", tags=["Machine Learning"])
+async def data_prep(urls: list):
+    """
+    Preparation of the data for the prediction.
+    In the list of urls, the first url must be the solar data, the second the weather data
+    """
+    solar_df = mf.data_coll_solar(urls[0])
+    weather_df = mf.data_collection_weather(urls[1])
+    data_df = mf.merge_weather_solar_data(weather_df, solar_df)
+    return data_df
+
 
 @app.post("/predict", tags=["Machine Learning"])
 async def predict(predictionFeatures: dict):
@@ -120,17 +132,18 @@ async def predict(predictionFeatures: dict):
     data = pd.DataFrame([predictionFeatures])
 
     # Log model from mlflow 
-    logged_model = 'runs:/74ad7196947346b38400fe6ebbb3cea6/pipeline_model'
-    logged_model = 'runs:/9c9501dd806242abaf63d6daf0fd2ac0/pipeline_model'
+    run = 'dd977154007f474993f35e5c5d8361b9'
+    logged_model = f'runs:/{run}/pipeline_model'
+    # logged_model = 'runs:/9c9501dd806242abaf63d6daf0fd2ac0/pipeline_model'
     
     
     # # Load model as a PyFuncModel.
     loaded_model = mlflow.pyfunc.load_model(logged_model)
     print('loaded model')
     prediction = loaded_model.predict(data)
-    #artifact_uri = mlflow.get_run(logged_model).info.artifact_uri
-    #errors = mlflow.artifacts.load_dict("s3://renergies99-mlflow/5/74ad7196947346b38400fe6ebbb3cea6/artifacts/pipeline_model" + "/error.json")
-    errors = mlflow.artifacts.load_dict('s3://renergies99-mlflow/5/9c9501dd806242abaf63d6daf0fd2ac0/artifacts/pipeline_model/error.json')
+    artifact_uri = mlflow.get_run(run).info.artifact_uri
+    errors = mlflow.artifacts.load_dict(artifact_uri + "/error.json")
+    # errors = mlflow.artifacts.load_dict('s3://renergies99-mlflow/5/9c9501dd806242abaf63d6daf0fd2ac0/artifacts/pipeline_model/error.json')
     errors_df = pd.DataFrame(errors)
     error_list = []
     for predi in prediction.tolist():
