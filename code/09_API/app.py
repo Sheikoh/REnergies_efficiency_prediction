@@ -140,9 +140,11 @@ async def predict(predictionFeatures):
     # Set experiment's info 
     mlflow.set_experiment(EXPERIMENT_NAME)
 
-    print(type(predictionFeatures), predictionFeatures)
+    #print(type(predictionFeatures), predictionFeatures)
     # Read data 
-    data = pd.read_json(StringIO(predictionFeatures), orient='index', dtype=False)
+    data = pd.read_csv("https://renergies99-bucket.s3.eu-west-3.amazonaws.com/public/prediction/data_compile_predi.csv", orient='index', dtype=False)
+    #data = pd.read_json(StringIO(predictionFeatures), orient='index', dtype=False)
+    
     #data = pd.DataFrame([predictionFeatures])
     #data = pd.DataFrame.from_dict(predictionFeatures, orient="index")
 
