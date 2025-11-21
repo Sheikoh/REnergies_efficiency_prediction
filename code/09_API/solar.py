@@ -1,7 +1,7 @@
 ### Importation of the libraries
 import requests
 import pandas as pd
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 # from utils import mean, daterange
 import boto3
 import os
@@ -22,6 +22,14 @@ from dotenv import load_dotenv
 ###Requesting the data
 
 # 
+
+load_dotenv()
+
+last_download_filename = "solar_last_download"
+
+API_KEY_S3 = os.environ["AWS_ACCESS_KEY_ID"]
+API_SECRET_KEY_S3 = os.environ["AWS_SECRET_ACCESS_KEY"]
+bucket_name = "renergies99-bucket"
 
 def req_solar(base_url, date, objective='predi'):
 
@@ -136,4 +144,42 @@ def fetch_predi(base_url, day, objective):
     bucket = session_boto()
     to_boto(bucket, "public/solar/", "predi_data.csv", df.to_csv())
 
+    to_boto(bucket, "public/solar/", last_download_filename, getNow().encode("utf-8"))
+
     return df
+
+def api_fetch_predi():
+    return fetch_predi('https://www.ngdc.noaa.gov/stp/space-weather/swpc-products/daily_reports/daypre',  
+                       (datetime.today().date()-timedelta(days=1)), 
+                       "predi")
+
+def s3_cred():
+    load_dotenv()
+
+    return boto3.client(
+        "s3",
+        aws_access_key_id=API_KEY_S3,
+        aws_secret_access_key=API_SECRET_KEY_S3,
+        region_name="eu-west-3"
+    )
+
+s3 = s3_cred()
+
+def getNow():
+    return datetime.now().strftime("%Y-%m-%d")
+
+def get_solar_last_download():
+    try:
+        key = f"public/solar/{last_download_filename}"
+
+        obj = s3.get_object(Bucket=bucket_name, Key=key)
+        ligne = obj["Body"].read().decode("utf-8")
+
+    except:
+        return "Cannot get rte last download data"
+    
+    return ligne
+
+
+def is_solar_data_already_downloaded():
+    return getNow() == get_solar_last_download()

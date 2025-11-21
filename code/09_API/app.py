@@ -12,6 +12,7 @@ from dotenv import load_dotenv
 import os
 import rte
 import openweathermap as owm
+import solar as sol
 from datetime import date, timedelta, datetime
 # data = pd.read_excel("ibm_hr_attrition.xlsx", index_col=0)
 # model = joblib.load("model_ibm")
@@ -247,3 +248,24 @@ async def openweathermap_last_download():
     Get the date of the last downloaded version of Openweathermap data
     """
     return owm.get_openweathermap_last_download()
+
+@app.get("/load_solar_data", tags=["Solar"])
+async def load_solar_data():
+    """
+    Load Solar data
+    """
+    if not sol.is_solar_data_already_downloaded():
+        try:
+            sol.api_fetch_predi()
+            
+            return "Solar data successfully uploaded"
+
+        except Exception as e:
+            return e
+
+@app.get("/solar_last_download", tags=["Solar"])
+async def solar_last_download():
+    """
+    Get the date of the last downloaded version of Solar data
+    """
+    return sol.get_solar_last_download()
