@@ -122,6 +122,10 @@ async def data_prep(urls: dict):
     cols = data_df.select_dtypes(include="int64").columns.to_list()
     data_df[cols] = data_df[cols].astype(float)
 
+    data_df
+
+    af.to_boto(bucket, data_df.to_csv(), "data_compile_predi.csv")
+
     return data_df.to_json(orient="index")
 
 
@@ -174,7 +178,7 @@ async def predict(predictionFeatures):
 #        all_predi = pd.concat([resp_df, hist_df])
 
     resp_toboto = resp_df.to_csv()
-    af.to_boto(bucket, resp_toboto)
+    af.to_boto(bucket, resp_toboto, "pred_tch_solaire_rhone_alpes.csv")
     return response
 
 @app.post("/predict_live", tags=["Machine Learning"])
