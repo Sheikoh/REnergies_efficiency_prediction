@@ -14,6 +14,7 @@ import rte
 import openweathermap as owm
 import solar as sol
 from datetime import date, timedelta, datetime
+from io import StringIO
 # data = pd.read_excel("ibm_hr_attrition.xlsx", index_col=0)
 # model = joblib.load("model_ibm")
 
@@ -125,7 +126,7 @@ async def data_prep(urls: dict):
 
 
 @app.post("/predict", tags=["Machine Learning"])
-async def predict(predictionFeatures: dict):
+async def predict(predictionFeatures):
     """
     Prediction of the Renewable Energies based on the input data 
     """
@@ -135,10 +136,11 @@ async def predict(predictionFeatures: dict):
     # Set experiment's info 
     mlflow.set_experiment(EXPERIMENT_NAME)
 
-    print(predictionFeatures)
+    print(type(predictionFeatures), predictionFeatures)
     # Read data 
-    data = pd.read_json(predictionFeatures, orient='index', dtype=False)
+    data = pd.read_json(StringIO(predictionFeatures), orient='index', dtype=False)
     #data = pd.DataFrame([predictionFeatures])
+    #data = pd.DataFrame.from_dict(predictionFeatures, orient="index")
 
     # Log model from mlflow 
     run = 'dd977154007f474993f35e5c5d8361b9'
