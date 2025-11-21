@@ -118,7 +118,7 @@ async def data_prep(urls: dict):
     weather_df = mf.data_collection_weather(urls["urls"][1])
     data_df = mf.merge_weather_solar_data(weather_df, solar_df)
     
-    return data_df.to_json()
+    return data_df.to_json(orient="index")
 
 
 @app.post("/predict", tags=["Machine Learning"])
@@ -274,3 +274,19 @@ async def solar_last_download():
     Get the date of the last downloaded version of Solar data
     """
     return sol.get_solar_last_download()
+
+
+
+"""
+urls = [
+        "https://renergies99-bucket.s3.eu-west-3.amazonaws.com/public/solar/predi_data.csv",
+        "https://renergies99-bucket.s3.eu-west-3.amazonaws.com/public/openweathermap/openweathermap_forecasts.csv"
+    ]
+
+payload = {"urls": urls}
+
+data = data_prep(payload)
+print(data)
+predictzz(data)
+
+"""
