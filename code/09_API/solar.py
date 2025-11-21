@@ -2,7 +2,7 @@
 import requests
 import pandas as pd
 from datetime import date, timedelta
-from utils import mean, daterange
+# from utils import mean, daterange
 import boto3
 import os
 from dotenv import load_dotenv
