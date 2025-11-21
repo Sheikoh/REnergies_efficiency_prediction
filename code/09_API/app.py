@@ -130,7 +130,7 @@ async def data_prep(urls: dict):
 
 
 @app.post("/predict", tags=["Machine Learning"])
-async def predict(predictionFeatures):
+async def predict():
     """
     Prediction of the Renewable Energies based on the input data 
     """
@@ -142,7 +142,7 @@ async def predict(predictionFeatures):
 
     #print(type(predictionFeatures), predictionFeatures)
     # Read data 
-    data = pd.read_csv("https://renergies99-bucket.s3.eu-west-3.amazonaws.com/public/prediction/data_compile_predi.csv", orient='index', dtype=False)
+    data = pd.read_csv("https://renergies99-bucket.s3.eu-west-3.amazonaws.com/public/prediction/data_compile_predi.csv")
     #data = pd.read_json(StringIO(predictionFeatures), orient='index', dtype=False)
     
     #data = pd.DataFrame([predictionFeatures])
