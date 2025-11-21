@@ -140,7 +140,7 @@ def call_predict():
     json_data = data.json()
     print("json_data", json_data)
 
-    response = requests.post("https://renergies99-api-renergy.hf.space/predict", json=json_data)
+    response = requests.post("https://renergies99-api-renergy.hf.space/predict")
     print("zzzzzzzzzzzzzzz", response.content)
     
 
