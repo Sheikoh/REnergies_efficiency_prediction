@@ -24,8 +24,6 @@ cities = [
     'Nyons'
 ]
 
-now = datetime.now().strftime("%Y-%m-%d")
-#path = "output"
 last_download_filename = f"openweathermap_last_download"
 
 API_KEY_S3 = os.environ["AWS_ACCESS_KEY_ID"]
@@ -84,6 +82,9 @@ def s3_cred():
 
 s3 = s3_cred()
 
+def getNow():
+    return datetime.now().strftime("%Y-%m-%d")
+
 def get_openweathermap_last_download():
     try:
         key = f"public/openweathermap/{last_download_filename}"
@@ -97,7 +98,7 @@ def get_openweathermap_last_download():
     return ligne
 
 def is_openweathermap_data_already_downloaded():
-    return now == get_openweathermap_last_download()
+    return getNow() == get_openweathermap_last_download()
 
 def get_city_data(cities=cities, filename="cities.json"):
     """
@@ -250,7 +251,7 @@ def load_openweathermap_data(cities_coord, file_basename="openweathermap_forecas
     s3.put_object(
         Bucket=bucket,
         Key=key,
-        Body=now.encode("utf-8")
+        Body=getNow().encode("utf-8")
     )
 
 def openweather_data_json_to_dataframe(cities_coord):
