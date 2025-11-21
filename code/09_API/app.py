@@ -122,7 +122,7 @@ async def data_prep(urls: dict):
     print("c")
     data_df = mf.merge_weather_solar_data(weather_df, solar_df)
     print("d")
-    return data_df
+    return data_df.to_json()
 
 
 @app.post("/predict", tags=["Machine Learning"])
