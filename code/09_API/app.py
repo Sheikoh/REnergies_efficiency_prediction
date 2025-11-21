@@ -117,7 +117,10 @@ async def data_prep(urls: dict):
     solar_df = mf.data_coll_solar(urls["urls"][0])
     weather_df = mf.data_collection_weather(urls["urls"][1])
     data_df = mf.merge_weather_solar_data(weather_df, solar_df)
-    
+
+    cols = data_df.select_dtypes(include="int64").columns.to_list()
+    data_df[cols] = data_df[cols].astype(float)
+
     return data_df.to_json(orient="index")
 
 
@@ -134,7 +137,7 @@ async def predict(predictionFeatures: dict):
 
     print(predictionFeatures)
     # Read data 
-    data = pd.read_json(predictionFeatures, orient='index')
+    data = pd.read_json(predictionFeatures, orient='index', dtype=False)
     #data = pd.DataFrame([predictionFeatures])
 
     # Log model from mlflow 
@@ -157,10 +160,10 @@ async def predict(predictionFeatures: dict):
     print(prediction)
 
     # Format response
-    response = {"Date": date(2025, 3, 2),
-                "TCH_solaire_pred": prediction.tolist()[0],
+    response = {"Date": data['Date'],
+                "TCH_solaire_pred": prediction.tolist(),
                 "Error": error_list}
-    resp_df = pd.DataFrame(response, index=list(range(len(response))))
+    resp_df = pd.DataFrame(response, index=list(range(len(response["TCH_solaire_pred"]))))
 #    try:
 #        hist_df = pd.read_csv('https://renergies99-bucket.s3.eu-west-3.amazonaws.com/public/prediction/predi.csv')
 #    except: 

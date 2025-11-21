@@ -36,7 +36,7 @@ def data_coll_solar(url='https://renergies99-bucket.s3.eu-west-3.amazonaws.com/p
     df_solar = pd.read_csv(url)
     data_solar = df_solar.copy()
     # data_solar["date"] is the uploaded date of the data
-    data_solar['Date'] = (pd.to_datetime(data_solar["date"], format="%Y-%m-%d") - timedelta(days=1)).apply(lambda a_date: a_date.strftime("%Y-%m-%d"))
+    data_solar['Date'] = (pd.to_datetime(data_solar["date"], format="%Y-%m-%d")).apply(lambda a_date: a_date.strftime("%Y-%m-%d"))
     data_solar.drop(columns=["Unnamed: 0", "date"], inplace=True)
 
     data_solar['Time'] = pd.to_datetime(data_solar['Date'])
