@@ -113,15 +113,11 @@ async def data_prep(urls: dict):
     Preparation of the data for the prediction.
     In the list of urls, the first url must be the solar data, the second the weather data
     """
-    print(urls, urls["urls"][0], urls["urls"][1])
 
-    print("a")
     solar_df = mf.data_coll_solar(urls["urls"][0])
-    print("b")
     weather_df = mf.data_collection_weather(urls["urls"][1])
-    print("c")
     data_df = mf.merge_weather_solar_data(weather_df, solar_df)
-    print("d")
+    
     return data_df.to_json()
 
 
@@ -138,8 +134,8 @@ async def predict(predictionFeatures: dict):
 
     print(predictionFeatures)
     # Read data 
-    #data = pd.read_json(predictionFeatures, orient='index')
-    data = pd.DataFrame([predictionFeatures])
+    data = pd.read_json(predictionFeatures, orient='index')
+    #data = pd.DataFrame([predictionFeatures])
 
     # Log model from mlflow 
     run = 'dd977154007f474993f35e5c5d8361b9'
