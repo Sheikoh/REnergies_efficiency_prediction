@@ -122,11 +122,15 @@ async def data_prep(urls: dict):
     cols = data_df.select_dtypes(include="int64").columns.to_list()
     data_df[cols] = data_df[cols].astype(float)
 
+    data_df
+
+    af.to_boto(bucket, data_df.to_csv(), "data_compile_predi.csv")
+
     return data_df.to_json(orient="index")
 
 
 @app.post("/predict", tags=["Machine Learning"])
-async def predict(predictionFeatures):
+async def predict():
     """
     Prediction of the Renewable Energies based on the input data 
     """
@@ -136,9 +140,11 @@ async def predict(predictionFeatures):
     # Set experiment's info 
     mlflow.set_experiment(EXPERIMENT_NAME)
 
-    print(type(predictionFeatures), predictionFeatures)
+    #print(type(predictionFeatures), predictionFeatures)
     # Read data 
-    data = pd.read_json(StringIO(predictionFeatures), orient='index', dtype=False)
+    data = pd.read_csv("https://renergies99-bucket.s3.eu-west-3.amazonaws.com/public/prediction/data_compile_predi.csv")
+    #data = pd.read_json(StringIO(predictionFeatures), orient='index', dtype=False)
+    
     #data = pd.DataFrame([predictionFeatures])
     #data = pd.DataFrame.from_dict(predictionFeatures, orient="index")
 
@@ -174,7 +180,7 @@ async def predict(predictionFeatures):
 #        all_predi = pd.concat([resp_df, hist_df])
 
     resp_toboto = resp_df.to_csv()
-    af.to_boto(bucket, resp_toboto)
+    af.to_boto(bucket, resp_toboto, "pred_tch_solaire_rhone_alpes.csv")
     return response
 
 @app.post("/predict_live", tags=["Machine Learning"])
