@@ -14,8 +14,9 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LinearRegression
 from dotenv import load_dotenv
 import os
+import boto3
 import mlflow
-from datetime import timedelta
+from datetime import timedelta, datetime
 import pvlib 
 
 #--------------COLLECT DATA FUNCTIONS---------------------------------------
@@ -434,3 +435,38 @@ def log_json_artifact(data, filename):
     with open(filename, "w") as f:
         json.dump(data, f)
     mlflow.log_artifact(filename)
+
+last_download_filename = "predi_last_download"
+API_KEY_S3 = os.environ["AWS_ACCESS_KEY_ID"]
+API_SECRET_KEY_S3 = os.environ["AWS_SECRET_ACCESS_KEY"]
+bucket = "renergies99-bucket"
+
+def s3_cred():
+    load_dotenv()
+
+    return boto3.client(
+        "s3",
+        aws_access_key_id=API_KEY_S3,
+        aws_secret_access_key=API_SECRET_KEY_S3,
+        region_name="eu-west-3"
+    )
+
+s3 = s3_cred()
+
+def getNow():
+    return datetime.now().strftime("%Y-%m-%d")
+
+def get_predi_last_download():
+    try:
+        key = f"public/prediction/{last_download_filename}"
+
+        obj = s3.get_object(Bucket=bucket, Key=key)
+        ligne = obj["Body"].read().decode("utf-8")
+
+    except:
+        return "Cannot get prediction last download data"
+    
+    return ligne
+
+def is_predi_data_already_downloaded():
+    return getNow() == get_predi_last_download()

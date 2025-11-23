@@ -98,7 +98,8 @@ class Item(BaseModel):
 #class PredictionFeatures(BaseModel):
 #    YearsExperience: float
 
-
+def getNow():
+    return datetime.now().strftime("%Y-%m-%d")
 
 @app.get("/", tags=["Introduction Endpoints"])
 async def index():
@@ -181,6 +182,8 @@ async def predict():
 
     resp_toboto = resp_df.to_csv()
     af.to_boto(bucket, resp_toboto, "pred_tch_solaire_rhone_alpes.csv")
+
+    af.to_boto(bucket, getNow().encode("utf-8"), "predi_last_download ")
     return response
 
 @app.post("/predict_live", tags=["Machine Learning"])
@@ -210,6 +213,13 @@ async def predict(file: UploadFile= File(...)):
     # Format response
     response = {"prediction": prediction.tolist()}
     return response
+
+@app.get("/predi_last_download", tags=["Machine Learning"])
+async def predi_last_download():
+    """
+    Get the date of the last downloaded version of Prediction
+    """
+    return mf.get_predi_last_download()
 
 @app.get("/load_rte_data", tags=["RTE"])
 async def load_rte_data():
@@ -285,19 +295,3 @@ async def solar_last_download():
     Get the date of the last downloaded version of Solar data
     """
     return sol.get_solar_last_download()
-
-
-
-"""
-urls = [
-        "https://renergies99-bucket.s3.eu-west-3.amazonaws.com/public/solar/predi_data.csv",
-        "https://renergies99-bucket.s3.eu-west-3.amazonaws.com/public/openweathermap/openweathermap_forecasts.csv"
-    ]
-
-payload = {"urls": urls}
-
-data = data_prep(payload)
-print(data)
-predictzz(data)
-
-"""
