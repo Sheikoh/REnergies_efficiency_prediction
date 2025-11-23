@@ -183,7 +183,7 @@ async def predict():
     resp_toboto = resp_df.to_csv()
     af.to_boto(bucket, resp_toboto, "pred_tch_solaire_rhone_alpes.csv")
 
-    af.to_boto(bucket, getNow().encode("utf-8"), "predi_last_download ")
+    af.to_boto(bucket, getNow().encode("utf-8"), "predi_last_download")
     return response
 
 @app.post("/predict_live", tags=["Machine Learning"])
