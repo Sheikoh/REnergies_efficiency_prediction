@@ -4,6 +4,7 @@ import plotly.express as px
 import requests
 import logging
 import time
+from datetime import datetime
 
 # Configiration de l'application
 st.set_page_config(
@@ -129,6 +130,10 @@ def load_predictions_file() -> pd.DataFrame:
     return df_pred[["Date", COL_TCH, "type"]]
 
 def call_predict():
+    predi_last_download_response = requests.get("https://renergies99-api-renergy.hf.space/predi_last_download")
+    if predi_last_download_response.content == datetime.now().strftime("%Y-%m-%d"):
+        return "Prediction data is already downloaded today"
+
     urls = [
         "https://renergies99-bucket.s3.eu-west-3.amazonaws.com/public/solar/predi_data.csv",
         "https://renergies99-bucket.s3.eu-west-3.amazonaws.com/public/openweathermap/openweathermap_forecasts.csv"
