@@ -100,33 +100,33 @@ def split_data_weather_by_city(data_weather, Cities='city'):
         dict_dfs_cities[key_name] = data_weather[data_weather[Cities]==city].copy()
     return dict_dfs_cities
 
-def concat_data_weather_by_city(dict_dfs_cities):
-    """
-    Concat columns of the 5 dataframes data_weather_by_city 
-    Add the name of the city in the columns names
-    Keep only one column 'Time'
-    Returns a Dataframe
-    """
-    # Sort each DataFrame by 'Date' if the column exists
-    sorted_dfs = {}
-    for name, df in dict_dfs_cities.items():
-        if 'Time' in df.columns:
-            sorted_df = df.sort_values('Time').reset_index(drop=True)
-            sorted_dfs[name] = sorted_df
-        else:
-            raise ValueError(f"The DataFrame '{name}' does not contain a 'Time' column.")
-    # check if 'Time' columns are identical in each Dataframe
-    time_columns = [df['Time'] for df in dict_dfs_cities.values()]
-    if not all(time_columns[0].equals(tc) for tc in time_columns[1:]):
-        raise ValueError("The 'Time' columns are not identical across DataFrames.")
+# def concat_data_weather_by_city(dict_dfs_cities):
+#     """
+#     Concat columns of the 5 dataframes data_weather_by_city 
+#     Add the name of the city in the columns names
+#     Keep only one column 'Time'
+#     Returns a Dataframe
+#     """
+#     # Sort each DataFrame by 'Date' if the column exists
+#     sorted_dfs = {}
+#     for name, df in dict_dfs_cities.items():
+#         if 'Time' in df.columns:
+#             sorted_df = df.sort_values('Time').reset_index(drop=True)
+#             sorted_dfs[name] = sorted_df
+#         else:
+#             raise ValueError(f"The DataFrame '{name}' does not contain a 'Time' column.")
+#     # check if 'Time' columns are identical in each Dataframe
+#     time_columns = [df['Time'] for df in dict_dfs_cities.values()]
+#     if not all(time_columns[0].equals(tc) for tc in time_columns[1:]):
+#         raise ValueError("The 'Time' columns are not identical across DataFrames.")
 
-    # Concatenate columns with a prefix for each DataFrame
-    final_df = pd.concat([df.add_prefix(f"{name}_") for name, df in dict_dfs_cities.items()], axis=1)
-    # keep only one columns 'Time"
-    time_cols = [col for col in final_df.columns if col.endswith('Time')]
-    final_df['Time'] = final_df[time_cols[0]]
-    final_df = final_df.drop(columns=time_cols)
-    return final_df
+#     # Concatenate columns with a prefix for each DataFrame
+#     final_df = pd.concat([df.add_prefix(f"{name}_") for name, df in dict_dfs_cities.items()], axis=1)
+#     # keep only one columns 'Time"
+#     time_cols = [col for col in final_df.columns if col.endswith('Time')]
+#     final_df['Time'] = final_df[time_cols[0]]
+#     final_df = final_df.drop(columns=time_cols)
+#     return final_df
 
 def merge_solar_position(weather_data, data_solar_position):
     """
@@ -268,10 +268,6 @@ def preprocessing_and_pipeline(X, estimator=LinearRegression()):
     """
     Prepare the preprocessing and model estimation pipeline. The pipeline will need to be fitted using .fit
     Returns {
-        "numeric_cols": numeric_cols,
-        "object_cols": object_cols,
-        "integer_cols": integer_cols,
-        "numeric_non_int_cols": numeric_non_int_cols,
         "preprocessor": preprocessor,
         "pipeline": pipeline
     }
@@ -279,8 +275,6 @@ def preprocessing_and_pipeline(X, estimator=LinearRegression()):
     # ---- identify columns
     numeric_cols = X.select_dtypes(include='number').columns.tolist()
     object_cols = X.select_dtypes(exclude='number').columns.tolist()
-    integer_cols = X.select_dtypes(include='int').columns.tolist()
-    numeric_non_int_cols = [col for col in numeric_cols if col not in integer_cols]
 
     X[numeric_cols] = X[numeric_cols].astype(float)
 
@@ -302,10 +296,6 @@ def preprocessing_and_pipeline(X, estimator=LinearRegression()):
     ])
 
     return {
-        "numeric_cols": numeric_cols,
-        "object_cols": object_cols,
-        "integer_cols": integer_cols,
-        "numeric_non_int_cols": numeric_non_int_cols,
         "preprocessor": preprocessor,
         "pipeline": pipeline
     }
@@ -413,7 +403,7 @@ def error_stat(x_test, y_test, pipeline):
     df['quantile_group'] = pd.qcut(df['y_test'], q=10, duplicates='drop')
 
     # Grouper et calculer moyenne et écart-type
-    table = df.groupby('quantile_group')['y_pred'].agg(['mean', 'std']).reset_index()
+    table = df.groupby('quantile_group', observed=False)['y_pred'].agg(['mean', 'std']).reset_index()
 
     # Ajouter les valeurs min et max de chaque intervalle
     table['min'] = table['quantile_group'].apply(lambda x: x.left)
