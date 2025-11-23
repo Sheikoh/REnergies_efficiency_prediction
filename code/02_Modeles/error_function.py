@@ -1,4 +1,4 @@
-def get_std(x, table_json):
+def get_std(x, table):
    if x <= min(table['min']):
       std = table['std'][0]
    elif x > max(table['max']):
