@@ -9,14 +9,16 @@ import json
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.compose import ColumnTransformer
-from sklearn.preprocessing import FunctionTransformer
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LinearRegression
+
 from dotenv import load_dotenv
 import os
 import mlflow
 from datetime import timedelta
 import pvlib 
+
+import func_feat_eng as ffe
 
 #--------------COLLECT DATA FUNCTIONS---------------------------------------
 #---Prod
@@ -264,129 +266,67 @@ def data_prep_for_ML(df, features):
 
     return prep_data
 
-def preprocessing_and_pipeline(X, estimator=LinearRegression()):
-    """
-    Prepare the preprocessing and model estimation pipeline. The pipeline will need to be fitted using .fit
-    Returns {
-        "preprocessor": preprocessor,
-        "pipeline": pipeline
-    }
-    """
-    # ---- identify columns
-    numeric_cols = X.select_dtypes(include='number').columns.tolist()
-    object_cols = X.select_dtypes(exclude='number').columns.tolist()
+import pandas as pd
+from sklearn.preprocessing import StandardScaler
+from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import Pipeline
+from sklearn.linear_model import LinearRegression
 
-    X[numeric_cols] = X[numeric_cols].astype(float)
-
-    # ---- pipelines
-    # integer_pipeline = Pipeline([
-    #     ('to_float', FunctionTransformer(lambda X: X.astype(float), validate=False)),
-    #     ('scaler', StandardScaler())
-    # ])
+def preprocessing_and_pipeline(X, estimator=LinearRegression(), suffixes=['humidity'], split_thresholds=[50]):
+    """
+    Prepare the preprocessing and model estimation pipeline.
     
-    preprocessor = ColumnTransformer([
-        #('int', integer_pipeline, integer_cols),
-        ('num', StandardScaler(), numeric_cols),
-        #('obj', 'passthrough', object_cols)
+    The pipeline applies:
+    - split + StandardScaler to all columns ending with any of the specified suffixes
+    - StandardScaler to all other numeric columns
+    - All numeric columns are converted to float
+    
+    Inputs: 
+     - X : pandas DataFrame
+     - estimator : sklearn estimator (default: LinearRegression)
+     - suffixes : list of strings, column suffixes to apply split + scale (default ['humidity'])
+     - split_thresholds : thresholds to pass to split_column_transformer (default [50])
+     
+    Returns:
+        dict with "preprocessor" and "pipeline"
+    """
+    # Identify numeric columns
+    numeric_cols = X.select_dtypes(include='number').columns.tolist()
+    
+    # Convert all numeric columns to float
+    X[numeric_cols] = X[numeric_cols].astype(float)
+    
+    # Columns ending with any of the given suffixes
+    split_cols = [c for c in numeric_cols if any(c.endswith(s) for s in suffixes)]
+    
+    # Remaining numeric columns
+    other_numeric_cols = [c for c in numeric_cols if c not in split_cols]
+    
+    # Transformer for selected columns: split + scale
+    split_transformer = ffe.split_column_transformer(thresholds=split_thresholds)
+    split_pipeline = Pipeline([
+        ('split', split_transformer),
+        ('scale', StandardScaler())
     ])
-
+    
+    # Preprocessor combining both
+    preprocessor = ColumnTransformer([
+        ('split_cols', split_pipeline, split_cols),
+        ('numeric', StandardScaler(), other_numeric_cols)
+    ])
+    
+    # Full pipeline with estimator
     pipeline = Pipeline([
         ('preprocessor', preprocessor),
         ('estimator', estimator)
     ])
-
+    
     return {
         "preprocessor": preprocessor,
         "pipeline": pipeline
     }
 
-
-def custom_get_feature_names(result, artifact_name=None):
-    """
-    NON OPERATIONAL NOW !!!
-    Extract feature names from the preprocessing.
-    Optionally logs the list as an MLflow artifact.
-    Input is the result of the function preprocessing_and_pipeline
-    Return the feature names
-    """
-    preprocessor = result["preprocessor"]
-    numeric_non_int_cols = result["numeric_non_int_cols"]
-    #object_cols = result["object_cols"]
-
-    feature_names = list(result["integer_cols"])
-    if "num" in preprocessor.named_transformers_:
-        num_transformer = preprocessor.named_transformers_["num"]
-        numeric_non_int_cols = result["numeric_non_int_cols"]
-        num_feature_names = num_transformer.get_feature_names_out(numeric_non_int_cols)
-        feature_names.extend(num_feature_names)
-    #get_feature_names_out for object_col
-
-    #Optional MLflow artifact logging
-    if artifact_name is not None:
-        log_json_artifact(feature_names, artifact_name)
-
-    return feature_names
-
-
-
-def data_prep_and_split(merged_data):
-    """
-    Preprocessing of the data.
-    Up to date: Production data and Landsat (meta)data / standard scaler
-    to be included: weather, solar / ohe, feature engineering
-    """
-
-    y = merged_data['tch_solaire_(%)'].to_numpy() #target
-    x = merged_data[['Land Cloud Cover','Sun Elevation L0RA']] #features
-
-    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.3, random_state=42)
-
-    # Preprocessing
-    sc = StandardScaler()
-    sc.fit(x_train)
-
-    x_train = sc.transform(x_train)
-    x_test = sc.transform(x_test)
-
-    return x_train, x_test, y_train, y_test
-
-def model_training(model, x_train, x_test, y_train, y_test):
-
-    """
-    Model training with experiment storage in mlflow server.
-    Can be decomposed further by separating the mlflow section. 
-    """
-
-    # pour enregistrer dans MLFlow
-    load_dotenv()
-
-    os.environ["APP_URI"] = "https://renergies99-mlflow.hf.space/"
-    EXPERIMENT_NAME="first_landsat_models"
-
-    mlflow.set_tracking_uri(os.environ["APP_URI"])
-    mlflow.set_experiment(EXPERIMENT_NAME)
-    experiment = mlflow.get_experiment_by_name(EXPERIMENT_NAME)
-
-    mlflow.sklearn.autolog()
-
-    # model 1
-    run_description = """
-    colonnes utilisées : ['Land Cloud Cover','Sun Elevation L0RA']
-    \n target = 'tch_solaire_(%)'
-    """
-
-    with mlflow.start_run(experiment_id = experiment.experiment_id, description=run_description):
-        model = LinearRegression()
-        model.fit(x_train, y_train)
-
-        score = model.score(x_test, y_test)
-        
-        mlflow.log_metric("ScoreR2", score)
-        mlflow.sklearn.log_model(model, "model")
-
-    print('model_score_train: ', model.score(x_train,y_train))
-    print('model_score_test: ', model.score(x_test,y_test))
-    
+  
 def error_stat(x_test, y_test, pipeline):
     """
     Returns a dataframe with target-value intervals and, for each interval,
