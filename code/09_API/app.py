@@ -137,7 +137,7 @@ async def predict():
     """
 
     # Set your variables for your environment
-    EXPERIMENT_NAME="all_columns_models_vno99"
+    EXPERIMENT_NAME="all_columns_models"
     # Set experiment's info 
     mlflow.set_experiment(EXPERIMENT_NAME)
 
@@ -153,7 +153,7 @@ async def predict():
     #data = pd.DataFrame.from_dict(predictionFeatures, orient="index")
 
     # Log model from mlflow 
-    run = 'e4d44e7ccc1842b889e0a735195fb91e' #Popular_Panda
+    run = '8e3d5a3ba16a489aae0e586610567565' #Popular_Panda
     logged_model = f'runs:/{run}/model'
     # logged_model = 'runs:/9c9501dd806242abaf63d6daf0fd2ac0/pipeline_model'
     
