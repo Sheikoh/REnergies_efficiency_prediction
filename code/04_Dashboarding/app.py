@@ -131,7 +131,7 @@ def load_predictions_file() -> pd.DataFrame:
 
 def call_predict():
     predi_last_download_response = requests.get("https://renergies99-api-renergy.hf.space/predi_last_download")
-    if predi_last_download_response.content == datetime.now().strftime("%Y-%m-%d"):
+    if predi_last_download_response.json() == datetime.now().strftime("%Y-%m-%d"):
         return "Prediction data is already downloaded today"
 
     urls = [
