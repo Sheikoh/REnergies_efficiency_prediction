@@ -153,7 +153,7 @@ async def predict():
     #data = pd.DataFrame.from_dict(predictionFeatures, orient="index")
 
     # Log model from mlflow 
-    run = '8e3d5a3ba16a489aae0e586610567565' #Popular_Panda
+    run = 'dd977154007f474993f35e5c5d8361b9' #Popular_Panda
     logged_model = f'runs:/{run}/model'
     # logged_model = 'runs:/9c9501dd806242abaf63d6daf0fd2ac0/pipeline_model'
     
