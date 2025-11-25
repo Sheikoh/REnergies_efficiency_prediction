@@ -146,9 +146,6 @@ async def predict():
     data = pd.read_csv("https://renergies99-bucket.s3.eu-west-3.amazonaws.com/public/prediction/data_compile_predi.csv")
     #data = pd.read_json(StringIO(predictionFeatures), orient='index', dtype=False)
 
-    cols = data.select_dtypes(include="int64").columns.to_list()
-    data[cols] = data[cols].astype(float)
-    
     #data = pd.DataFrame([predictionFeatures])
     #data = pd.DataFrame.from_dict(predictionFeatures, orient="index")
 
