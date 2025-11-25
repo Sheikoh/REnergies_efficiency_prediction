@@ -145,12 +145,15 @@ async def predict():
     # Read data 
     data = pd.read_csv("https://renergies99-bucket.s3.eu-west-3.amazonaws.com/public/prediction/data_compile_predi.csv")
     #data = pd.read_json(StringIO(predictionFeatures), orient='index', dtype=False)
+
+    cols = data.select_dtypes(include="int64").columns.to_list()
+    data[cols] = data[cols].astype(float)
     
     #data = pd.DataFrame([predictionFeatures])
     #data = pd.DataFrame.from_dict(predictionFeatures, orient="index")
 
     # Log model from mlflow 
-    run = '94f3786dff504def90b4f8f73ea9ff9a' #Popular_Panda
+    run = 'dd977154007f474993f35e5c5d8361b9' #Popular_Panda
     logged_model = f'runs:/{run}/model'
     # logged_model = 'runs:/9c9501dd806242abaf63d6daf0fd2ac0/pipeline_model'
     
