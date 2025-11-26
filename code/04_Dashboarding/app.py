@@ -69,12 +69,17 @@ def get_daily_tch_solaire_regional(df_reg: pd.DataFrame) -> pd.DataFrame:
 def load_data():
     # Datasets
     df_nat = pd.read_csv("https://renergies99-bucket.s3.eu-west-3.amazonaws.com/public/prod/eCO2mix_RTE_Annuel-Definitif.csv")
-    df_reg = pd.read_csv("https://renergies99-bucket.s3.eu-west-3.amazonaws.com/public/prod/eCO2mix_RTE_Auvergne-Rhone-Alpes.csv")
-
     df_nat_prep = prepare_df(df_nat, zone="France")
+
+    return df_nat_prep
+
+@st.cache_data
+def load_regional_data():
+    # Datasets
+    df_reg = pd.read_csv("https://renergies99-bucket.s3.eu-west-3.amazonaws.com/public/prod/eCO2mix_RTE_Auvergne-Rhone-Alpes.csv")
     df_reg_prep = prepare_df(df_reg, zone="Auvergne-Rhône-Alpes")
 
-    return df_nat_prep, df_reg_prep
+    return df_reg_prep
 
 def load_api_data(url, data_type):
     logging.info(f"LOAD {data_type}")
@@ -102,6 +107,15 @@ def load_api_data(url, data_type):
 
     else:
         logging.error("Failure after {max_retries} retries")
+
+def load_rte_data():
+    rte_last_download_response = requests.get("https://renergies99-api-renergy.hf.space/rte_last_download")
+    if rte_last_download_response.json() == datetime.now().strftime("%Y-%m-%d"):
+        return "RTE data is already downloaded today"
+    
+    load_api_data("https://renergies99-api-renergy.hf.space/load_rte_data", "RTE")
+
+    return load_regional_data()
 
 def load_predictions_file() -> pd.DataFrame:
     """
@@ -158,9 +172,10 @@ mode = st.sidebar.radio(
 )
 
 # Chargement des données en cache
-df_nat, df_reg = load_data()
+df_nat = load_data()
+df_reg = load_rte_data()
 
-load_api_data("https://renergies99-api-renergy.hf.space/load_rte_data", "RTE")
+#load_api_data("https://renergies99-api-renergy.hf.space/load_rte_data", "RTE")
 load_api_data("https://renergies99-api-renergy.hf.space/load_openweathermap_forecasts", "OPENWEATHERMAP FORECASTS")
 load_api_data("https://renergies99-api-renergy.hf.space/load_solar_data", "SOLAR FORECAST")
 
