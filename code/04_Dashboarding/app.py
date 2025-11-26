@@ -110,10 +110,8 @@ def load_api_data(url, data_type):
 
 def load_rte_data():
     rte_last_download_response = requests.get("https://renergies99-api-renergy.hf.space/rte_last_download")
-    if rte_last_download_response.json() == datetime.now().strftime("%Y-%m-%d"):
-        return "RTE data is already downloaded today"
-    
-    load_api_data("https://renergies99-api-renergy.hf.space/load_rte_data", "RTE")
+    if rte_last_download_response.json() != datetime.now().strftime("%Y-%m-%d"):
+        load_api_data("https://renergies99-api-renergy.hf.space/load_rte_data", "RTE")
 
     return load_regional_data()
 
