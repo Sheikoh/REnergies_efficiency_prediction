@@ -73,7 +73,6 @@ def load_data():
 
     return df_nat_prep
 
-@st.cache_data
 def load_regional_data():
     # Datasets
     df_reg = pd.read_csv("https://renergies99-bucket.s3.eu-west-3.amazonaws.com/public/prod/eCO2mix_RTE_Auvergne-Rhone-Alpes.csv")
@@ -171,6 +170,7 @@ mode = st.sidebar.radio(
 
 # Chargement des données en cache
 df_nat = load_data()
+
 df_reg = load_rte_data()
 
 #load_api_data("https://renergies99-api-renergy.hf.space/load_rte_data", "RTE")
