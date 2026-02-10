@@ -158,20 +158,22 @@ def merge_weather_dfs_by_city(dict_dfs_cities):
         df = add_day_length_column(df, city)
 
         df_prefixed = df.rename(columns={col: f"{city}_{col}" for col in df.columns if col != 'Time'})
+        df_prefixed["Time"] = df_prefixed["Time"].dt.normalize() + pd.Timedelta(hours=12)
 
         # Merge with inner joint
         if merged_df is None:
             merged_df = df_prefixed
         else:
             merged_df = pd.merge(merged_df, df_prefixed, on='Time', how='inner')
-
     merged_df = merged_df.sort_values('Time').reset_index(drop=True)
+
     return merged_df
 
 def data_collection_weather(data_path):
     weather_data = data_coll_weather(data_path)
     dfs_by_city = split_data_weather_by_city(weather_data)
     collected_data = merge_weather_dfs_by_city(dfs_by_city)
+    
     return collected_data
 
 #---------------MERGE COLLECTED DATA------------------------------
