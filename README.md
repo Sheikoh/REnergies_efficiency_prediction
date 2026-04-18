@@ -1,6 +1,9 @@
 # REnergies_efficiency_prediction
 Jedha bootcamp final project. Prediction of the Renewable energy sources output based on meteorological and spatial data
 
+lien github:
+https://github.com/Sheikoh/REnergies_efficiency_prediction.git
+
 ## Architecture Diagrams
 
 ### Simplified architecture
